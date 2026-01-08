@@ -1,8 +1,9 @@
 import { db } from './firebase-config.js';
 import { 
-    getDoc, doc, setDoc, updateDoc, serverTimestamp 
+    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, orderBy, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// DATA WILAYAH (Wajib ada agar Generator Kartu Berjalan)
 const dataWilayah = {
     "WATES": ["KREMBANGAN", "BOJONG", "GIRIPENI 1", "GIRIPENI 2", "HARGOWILIS", "TRIHARJO"],
     "PENGASIH": ["MARGOSARI", "SENDANGSARI", "BANJARHARJO", "NANGGULAN", "GIRINYONO", "JATIMULYO", "SERUT"],
@@ -42,6 +43,7 @@ window.showDashboardAdmin = () => {
             <p style="font-size:14px; color:#666;">Scan kartu untuk absen otomatis</p>
         </div>
         <button onclick="showHalamanBuatKartu()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📇 BUAT KARTU BARCODE</button>
+        <button onclick="showHalamanRekap()" class="primary-btn" style="background:#ffc107; color:black; margin-top:10px;">📊 REKAP KEHADIRAN</button>
         <button onclick='mulaiScanner()' class="scan-btn" style="height:120px; font-size:22px;">📸 SCAN SEKARANG</button>
     `;
 };
@@ -53,7 +55,7 @@ window.mulaiScanner = () => {
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (txt) => {
         await window.stopScanner();
-        prosesAbsensiOtomatis(txt); // Fungsi baru tanpa pendaftaran manual
+        prosesAbsensiOtomatis(txt); 
     }).catch(e => {
         alert("Kamera error!");
         window.stopScanner();
@@ -69,28 +71,25 @@ window.stopScanner = async () => {
 // --- 4. PROSES ABSENSI OTOMATIS (LANGSUNG HADIR) ---
 window.prosesAbsensiOtomatis = async (isiBarcode) => {
     try {
-        // Barcode isinya format: DESA|KELOMPOK|NOMOR (Contoh: WATES|BOJONG|1)
         const part = isiBarcode.split('|');
         if (part.length < 3) return alert("Barcode Tidak Valid!");
 
         const desa = part[0];
         const kelompok = part[1];
         const nomor = part[2];
-        const idDoc = isiBarcode.replace(/\|/g, '_'); // Ganti | jadi _ untuk ID Firebase
+        const idDoc = isiBarcode.replace(/\|/g, '_'); 
 
         const docRef = doc(db, "peserta_asrama", idDoc);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            // Jika sudah ada data di database, update jam absennya
             await updateDoc(docRef, {
                 status_hadir: true,
                 waktu_absen: serverTimestamp()
             });
         } else {
-            // JIKA DATA BELUM ADA: Otomatis daftarkan berdasarkan info di Barcode
             await setDoc(docRef, {
-                nama: `${kelompok} ${nomor}`, // Nama otomatis: BOJONG 1
+                nama: `${kelompok} ${nomor}`, 
                 desa: desa,
                 kelompok: kelompok,
                 status_hadir: true,
@@ -163,7 +162,6 @@ window.render5Kartu = (desa, kelompok) => {
     container.innerHTML = ""; 
 
     for (let i = 1; i <= 5; i++) {
-        // FORMAT BARCODE: DESA|KELOMPOK|NOMOR
         const isiBarcode = `${desa}|${kelompok}|${i}`;
         const cardId = `kartu-wrap-${i}`;
         
@@ -186,7 +184,7 @@ window.render5Kartu = (desa, kelompok) => {
         container.appendChild(div);
 
         new QRCode(document.getElementById(`qr-area-${i}`), {
-            text: isiBarcode, // Menyimpan data Desa|Kelompok|Nomor
+            text: isiBarcode, 
             width: 150,
             height: 150
         });
@@ -201,6 +199,56 @@ window.downloadKartu = (elementId, fileName) => {
         link.href = canvas.toDataURL("image/png");
         link.click();
     });
+};
+
+// --- 7. HALAMAN REKAP KEHADIRAN ---
+window.showHalamanRekap = async () => {
+    const content = document.getElementById('pendaftar-section');
+    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data Rekap...</h3></div>`;
+
+    try {
+        const q = query(collection(db, "peserta_asrama"), orderBy("waktu_absen", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        let htmlRekap = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color:#0056b3;">Rekap Kehadiran</h3>
+                <button onclick="showDashboardAdmin()" style="background:#666; color:white; border:none; padding:5px 12px; border-radius:8px; cursor:pointer;">X</button>
+            </div>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse: collapse; font-size:12px; background:white;">
+                    <thead>
+                        <tr style="background:#0056b3; color:white;">
+                            <th style="padding:10px; border:1px solid #ddd;">IDENTITAS</th>
+                            <th style="padding:10px; border:1px solid #ddd;">DESA</th>
+                            <th style="padding:10px; border:1px solid #ddd;">JAM</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        if (querySnapshot.empty) {
+            htmlRekap += `<tr><td colspan="3" style="text-align:center; padding:20px;">Belum ada data absen.</td></tr>`;
+        } else {
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const waktu = data.waktu_absen ? data.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
+                htmlRekap += `
+                    <tr>
+                        <td style="padding:10px; border:1px solid #ddd;"><b>${data.nama}</b></td>
+                        <td style="padding:10px; border:1px solid #ddd;">${data.desa}</td>
+                        <td style="padding:10px; border:1px solid #ddd; text-align:center;">${waktu}</td>
+                    </tr>`;
+            });
+        }
+
+        htmlRekap += `</tbody></table></div>
+                      <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:20px;">KEMBALI</button>`;
+        
+        content.innerHTML = htmlRekap;
+    } catch (e) {
+        alert("Gagal memuat rekap: " + e.message);
+        showDashboardAdmin();
+    }
 };
 
 // Inisialisasi
