@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import { 
-    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, orderBy, getDocs, where 
+    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const strukturOrganisasi = {
@@ -33,9 +33,8 @@ window.showLoginPanitia = () => {
     };
 };
 
-// --- 2. DASHBOARD (DENGAN PILIHAN SESI) ---
+// --- 2. DASHBOARD ---
 window.showDashboardAdmin = () => {
-    // Ambil sesi terakhir yang dipilih dari memori HP agar tidak pilih ulang terus
     const curHari = localStorage.getItem('activeHari') || "1";
     const curSesi = localStorage.getItem('activeSesi') || "SUBUH";
 
@@ -62,10 +61,8 @@ window.showDashboardAdmin = () => {
 };
 
 window.simpanSesiLaluScan = () => {
-    const h = document.getElementById('set-hari').value;
-    const s = document.getElementById('set-sesi').value;
-    localStorage.setItem('activeHari', h);
-    localStorage.setItem('activeSesi', s);
+    localStorage.setItem('activeHari', document.getElementById('set-hari').value);
+    localStorage.setItem('activeSesi', document.getElementById('set-sesi').value);
     mulaiScanner();
 };
 
@@ -86,19 +83,15 @@ window.stopScanner = async () => {
     scanSec.classList.add('hidden');
 };
 
-// --- 4. PROSES ABSENSI (MULTI-SESI) ---
+// --- 4. PROSES ABSENSI ---
 window.prosesAbsensiOtomatis = async (isiBarcode) => {
     const h = localStorage.getItem('activeHari');
     const s = localStorage.getItem('activeSesi');
-
     try {
         const part = isiBarcode.split('|');
         if (part.length < 3) return alert("Barcode Tidak Valid!");
-
         const [level, desa, identitas] = part;
-        // ID Unik per orang per sesi: BOJONG_1_H1_SUBUH
         const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
-
         const docRef = doc(db, "absensi_asrama", idDoc);
         
         await setDoc(docRef, {
@@ -109,27 +102,19 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
             sesi: s,
             waktu_absen: serverTimestamp()
         });
-
         tampilkanSukses(`${identitas} (${s})`);
     } catch (e) { alert("Error: " + e.message); }
 };
 
-// --- 5. OVERLAY SUKSES ---
 function tampilkanSukses(identitas) {
     const overlay = document.getElementById('success-overlay');
     overlay.style.display = 'flex';
-    overlay.innerHTML = `
-        <div class="celebration-wrap">
-            <div class="text-top">ALHAMDULILLAH</div>
-            <div class="text-main" style="font-size:2rem;">${identitas}</div>
-            <p style="font-size:18px; font-weight:bold;">ABSEN BERHASIL!</p>
-        </div>
-    `;
+    overlay.innerHTML = `<div class="celebration-wrap"><div class="text-top">ALHAMDULILLAH</div><div class="text-main">${identitas}</div><p>ABSEN BERHASIL!</p></div>`;
     if (navigator.vibrate) navigator.vibrate(200);
     setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2000);
 }
 
-// --- 6. GENERATOR KARTU (TETAP SAMA) ---
+// --- 5. GENERATOR KARTU (2 KARTU) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -145,9 +130,8 @@ window.showHalamanBuatKartu = () => {
             <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">BUAT 2 KARTU SEKARANG</button>
             <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
         </div>
-        <div id="container-kartu-hasil" style="margin-top:20px; display:flex; flex-direction:column; align-items:center; gap:20px;"></div>
+        <div id="container-kartu-hasil"></div>
     `;
-
     const katSel = document.getElementById('select-kategori-kartu');
     const subContainer = document.getElementById('sub-pilihan-container');
     const btnGen = document.getElementById('btn-generate-act');
@@ -196,10 +180,11 @@ function render2Kartu(container, level, desa, identitas) {
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
+        div.style = "display:flex; flex-direction:column; align-items:center; margin-bottom:20px;";
         div.innerHTML = `
-            <div id="${cardId}" class="qris-container" style="margin-bottom:10px;">
+            <div id="${cardId}" class="qris-container">
                 <div class="qris-header" style="background:#0056b3;"><h3>KARTU ASRAMA</h3></div>
-                <div class="qris-event-name" style="font-size:14px; margin-top:10px;">
+                <div class="qris-event-name">
                     <b style="color:#0056b3;">${level}</b><br>
                     DESA : ${desa}<br>
                     <b>${namaUnik}</b>
@@ -207,7 +192,7 @@ function render2Kartu(container, level, desa, identitas) {
                 <div id="qr-${cardId}" style="display:flex; justify-content:center; margin:15px 0;"></div>
                 <div class="qris-footer" style="border-top: 5px solid #0056b3;"><p>ASRAMA KULON PROGO</p></div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; margin-bottom:30px; background:#0056b3;">⬇️ DOWNLOAD</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; background:#0056b3;">⬇️ DOWNLOAD</button>
         `;
         container.appendChild(div);
         new QRCode(document.getElementById(`qr-${cardId}`), { text: isiBarcode, width: 150, height: 150 });
@@ -224,53 +209,85 @@ window.downloadKartu = (elementId, fileName) => {
     });
 };
 
-// --- 7. REKAP (FILTER PER SESI) ---
+// --- 6. REKAP TERORGANISIR (DAERAH, DESA, KELOMPOK) ---
 window.showHalamanRekap = async () => {
-    const curHari = localStorage.getItem('activeHari') || "1";
-    const curSesi = localStorage.getItem('activeSesi') || "SUBUH";
-
+    const h = localStorage.getItem('activeHari') || "1";
+    const s = localStorage.getItem('activeSesi') || "SUBUH";
     const content = document.getElementById('pendaftar-section');
-    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data H${curHari} - ${curSesi}...</h3></div>`;
+    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data H${h} - ${s}...</h3></div>`;
     
     try {
-        // KODE DIPERBARUI: Mengambil data absensi_asrama tanpa filter berlebih dulu
-        const q = query(collection(db, "absensi_asrama"), 
-                  where("hari", "==", curHari), 
-                  where("sesi", "==", curSesi));
-        
+        const q = query(collection(db, "absensi_asrama"), where("hari", "==", h), where("sesi", "==", s));
         const snap = await getDocs(q);
         
+        // Pengelompokan Data
+        let rekap = { DAERAH: [], DESA: {}, KELOMPOK: {} };
+        snap.forEach(doc => {
+            const p = doc.data();
+            if(p.level === "DAERAH") rekap.DAERAH.push(p);
+            else if(p.level === "DESA") {
+                if(!rekap.DESA[p.desa]) rekap.DESA[p.desa] = [];
+                rekap.DESA[p.desa].push(p);
+            } else {
+                // Kelompok dipecah per Nama Kelompoknya
+                const namaKlp = p.nama.split(' ').slice(0, -1).join(' '); // Ambil "KREMBANGAN" dari "KREMBANGAN 1"
+                if(!rekap.KELOMPOK[namaKlp]) rekap.KELOMPOK[namaKlp] = [];
+                rekap.KELOMPOK[namaKlp].push(p);
+            }
+        });
+
         let html = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; color:#0056b3;">Laporan H${curHari} - ${curSesi}</h3>
-                <button onclick="showDashboardAdmin()" style="background:#666; color:white; border:none; padding:5px 12px; border-radius:8px;">X</button>
-            </div>`;
+            <div id="print-rekap-area">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h3 style="margin:0; color:#0056b3;">LAPORAN H${h} - ${s}</h3>
+                    <button onclick="showDashboardAdmin()" style="background:#666; color:white; border:none; padding:5px 12px; border-radius:8px;">X</button>
+                </div>`;
 
-        if(snap.empty) {
-            html += `<p style="text-align:center; color:#999; padding:20px;">Belum ada yang absen di sesi ini.</p>`;
-        } else {
-            // Urutkan manual di sini agar tidak butuh Index Descending yang rumit
-            const dataSorted = snap.docs.map(doc => doc.data()).sort((a, b) => {
-                return (b.waktu_absen?.toMillis() || 0) - (a.waktu_absen?.toMillis() || 0);
-            });
+        // 1. SECTION DAERAH
+        html += `<div style="background:#0056b3; color:white; padding:8px 12px; font-weight:bold; border-radius:5px; margin-top:10px;">PENGURUS DAERAH</div>`;
+        if(rekap.DAERAH.length === 0) html += `<p style="padding:10px; color:#999; font-size:12px;">Belum ada data</p>`;
+        rekap.DAERAH.forEach(p => html += renderRow(p));
 
-            dataSorted.forEach(p => {
-                const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
-                html += `
-                    <div style="background:white; border-bottom:1px solid #eee; padding:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <div><div style="font-weight:bold;">${p.nama}</div><div style="font-size:11px; color:#666;">${p.desa}</div></div>
-                        <div style="color:#0056b3; font-weight:bold;">${jam}</div>
-                    </div>`;
-            });
-        }
+        // 2. SECTION DESA
+        html += `<div style="background:#0056b3; color:white; padding:8px 12px; font-weight:bold; border-radius:5px; margin-top:20px;">PENGURUS DESA</div>`;
+        if(Object.keys(rekap.DESA).length === 0) html += `<p style="padding:10px; color:#999; font-size:12px;">Belum ada data</p>`;
+        Object.keys(rekap.DESA).sort().forEach(desa => {
+            html += `<div style="background:#f0f4f8; padding:5px 12px; font-size:12px; font-weight:bold; color:#0056b3; border-bottom:1px solid #ddd;">DESA ${desa}</div>`;
+            rekap.DESA[desa].forEach(p => html += renderRow(p));
+        });
 
-        html += `<button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:20px;">KEMBALI</button>`;
+        // 3. SECTION KELOMPOK
+        html += `<div style="background:#0056b3; color:white; padding:8px 12px; font-weight:bold; border-radius:5px; margin-top:20px;">KELOMPOK PESERTA</div>`;
+        if(Object.keys(rekap.KELOMPOK).length === 0) html += `<p style="padding:10px; color:#999; font-size:12px;">Belum ada data</p>`;
+        Object.keys(rekap.KELOMPOK).sort().forEach(klp => {
+            html += `<div style="background:#f0f4f8; padding:5px 12px; font-size:12px; font-weight:bold; color:#555; border-bottom:1px solid #ddd;">KLP ${klp}</div>`;
+            rekap.KELOMPOK[klp].forEach(p => html += renderRow(p));
+        });
+
+        html += `</div>
+                 <button onclick="downloadLaporan()" class="primary-btn" style="background:#28a745; margin-top:20px;">📥 DOWNLOAD LAPORAN (IMG)</button>
+                 <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:10px;">KEMBALI</button>`;
+        
         content.innerHTML = html;
-    } catch (e) { 
-        console.error(e);
-        alert("Gagal memuat rekap. Pastikan Index sudah aktif di Console."); 
-        showDashboardAdmin(); 
-    }
+    } catch (e) { alert(e.message); showDashboardAdmin(); }
+};
+
+function renderRow(p) {
+    const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
+    return `<div style="background:white; border-bottom:1px solid #eee; padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:bold; font-size:13px;">${p.nama}</div>
+                <div style="color:#0056b3; font-weight:bold; font-size:12px;">${jam}</div>
+            </div>`;
+}
+
+window.downloadLaporan = () => {
+    const target = document.getElementById('print-rekap-area');
+    html2canvas(target).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Laporan_Asrama_H${localStorage.getItem('activeHari')}_${localStorage.getItem('activeSesi')}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
 };
 
 // Inisialisasi
