@@ -235,12 +235,12 @@ window.downloadKartu = (elementId, fileName) => {
     });
 };
 
-// --- 6. REKAP CHECKLIST MATRIX (HIRARKI DAERAH, DESA, & KIRIMAN) ---
-// --- 6. REKAP CHECKLIST MATRIX (HIRARKI STICKY & RATA KIRI) ---
+// --- 6. REKAP ---
+// --- 6. REKAP CHECKLIST MATRIX (PENYESUAIAN FINAL) ---
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
-    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Menyusun Laporan Hirarki...</h3></div>`;
+    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Menyusun Laporan...</h3></div>`;
     
     try {
         let q;
@@ -281,60 +281,61 @@ window.showHalamanRekap = async () => {
             matrix[idPeserta][sesiKey] = jam;
         });
 
-        // Tentukan jumlah kolom untuk colspan penyekat (24 untuk 'all', 4 untuk harian)
         const totalSesi = viewHari === 'all' ? 24 : 4;
 
         let html = `
             <div style="background:#f4f7f6; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #ddd;">
-                <p style="margin:0 0 8px 0; font-weight:bold; font-size:11px; color:#0056b3;">PILIH TAMPILAN:</p>
-                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <p style="margin:0 0 8px 0; font-weight:bold; font-size:14px; color:#0056b3;">PILIH HARI:</p>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     ${[1,2,3,4,5,6].map(num => `
-                        <button onclick="setViewHari(${num})" style="flex:1; min-width:40px; padding:8px 0; border:none; border-radius:5px; font-size:10px; font-weight:bold; background:${viewHari == num ? '#0056b3' : '#ccc'}; color:white;">H${num}</button>
+                        <button onclick="setViewHari(${num})" style="flex:1; min-width:50px; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari == num ? '#0056b3' : '#ccc'}; color:white;">H${num}</button>
                     `).join('')}
-                    <button onclick="setViewHari('all')" style="flex:2; padding:8px 0; border:none; border-radius:5px; font-size:10px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI (24 KOLOM)</button>
+                    <button onclick="setViewHari('all')" style="flex:2; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI (24 KOLOM)</button>
                 </div>
             </div>
 
             <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
-                <div id="print-rekap-area" style="background:white; padding:15px; min-width:${viewHari === 'all' ? '1800px' : '850px'}; font-family: sans-serif;">
-                    <h2 style="text-align:center; color:#0056b3; margin-bottom:15px; border-bottom:2px solid #0056b3; padding-bottom:10px;">
+                <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '1000px'}; font-family: sans-serif;">
+                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; font-size:24px;">
                         REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}
                     </h2>
                     
-                    <table style="width:100%; border-collapse: collapse; font-size:10px;">
+                    <table style="width:100%; border-collapse: collapse; font-size:14px; border: 2px solid #ddd;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
-                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:left; position:sticky; left:0; background:#0056b3; z-index:20; width:250px;">NAMA PESERTA / JABATAN</th>
-                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:5px;">HARI ${h}</th>`).join('')}
+                                <th rowspan="2" style="padding:15px; border:1px solid #ddd; text-align:left; width:300px; font-size:16px;">NAMA PESERTA / JABATAN</th>
+                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px; font-size:16px;">HARI ${h}</th>`).join('')}
                             </tr>
                             <tr style="background:#007bff; color:white;">
                                 ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `
-                                    <th style="border:1px solid #ddd; padding:4px; font-size:7px;">SUB</th><th style="border:1px solid #ddd; padding:4px; font-size:7px;">PAG</th>
-                                    <th style="border:1px solid #ddd; padding:4px; font-size:7px;">SIA</th><th style="border:1px solid #ddd; padding:4px; font-size:7px;">MAL</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">SUBUH</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">PAGI</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">SIANG</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">MALAM</th>
                                 `).join('')}
                             </tr>
                         </thead>
                         <tbody>`;
 
         // 1. RENDER DAERAH
-        html += renderPenyekatSticky("PENGURUS DAERAH", "#333", totalSesi);
+        html += renderPenyekatSticky("PENGURUS DAERAH", "#0056b3", totalSesi, "white", "15px");
         dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
             html += renderBarisMatriks(p, matrix, viewHari);
         });
 
         // 2. RENDER PENGURUS DESA
-        html += renderPenyekatSticky("PENGURUS DESA", "#555", totalSesi);
+        html += renderPenyekatSticky("PENGURUS DESA", "#0056b3", totalSesi, "white", "15px");
         Object.keys(dataRekap.PENGURUS_DESA).sort().forEach(desa => {
-            html += renderPenyekatSticky(`DESA ${desa}`, "#f0f4f8", totalSesi, "#0056b3", "12px");
+            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "10px");
             dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
                 html += renderBarisMatriks(p, matrix, viewHari);
             });
         });
 
         // 3. RENDER KIRIMAN KELOMPOK
-        html += renderPenyekatSticky("KIRIMAN KELOMPOK :", "#0056b3", totalSesi);
+        html += renderPenyekatSticky("KIRIMAN KELOMPOK :", "#0056b3", totalSesi, "white", "15px");
         Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
-            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#eef6ff", totalSesi, "#0056b3", "12px");
+            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "10px");
             dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
                 html += renderBarisMatriks(p, matrix, viewHari, true);
             });
@@ -342,7 +343,7 @@ window.showHalamanRekap = async () => {
 
         html += `</tbody></table></div></div>
                  <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                    <button onclick="downloadLaporan()" class="primary-btn" style="background:#0056b3;">📥 DOWNLOAD GAMBAR</button>
+                    <button onclick="downloadLaporan()" class="primary-btn" style="background:#0056b3; padding: 15px; font-size: 16px;">📥 DOWNLOAD GAMBAR LAPORAN</button>
                     <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
                  </div>`;
         
@@ -350,24 +351,24 @@ window.showHalamanRekap = async () => {
     } catch (e) { alert(e.message); showDashboardAdmin(); }
 };
 
-// Fungsi Helper Penyekat Sticky Rata Kiri
-function renderPenyekatSticky(label, bgColor, totalCol, textColor = "white", paddingLeft = "8px") {
+// Fungsi Helper Penyekat - Disesuaikan agar lebih ramping & satu warna
+function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, fontSize = "14px") {
     return `<tr>
-        <td style="padding:${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; position:sticky; left:0; z-index:15; text-align:left;">
+        <td style="padding: 6px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; font-size:${fontSize};">
             ${label}
         </td>
         <td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td>
     </tr>`;
 }
 
-// Fungsi Helper Baris Data
+// Fungsi Helper Baris Data - Tulisan Hadir Sejajar & Lebih Besar
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     let namaTampil = p.nama.includes("Peserta") ? p.nama : p.nama.replace(/\s\d+$/, '');
-    let styleIndent = isKelompok ? "padding-left:30px;" : "padding-left:10px;";
+    let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
     let prefix = isKelompok ? "- " : "";
 
     let rowHtml = `<tr>
-        <td style="padding:8px; border:1px solid #ddd; position:sticky; left:0; background:#fff; z-index:10; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent}">
+        <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">
             ${prefix}${namaTampil}
         </td>`;
     
@@ -375,8 +376,8 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
             const jam = matrix[p.id][`H${h}_${s}`];
-            rowHtml += `<td style="padding:4px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'};">
-                ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:7px;">HADIR<br>${jam}</span>` : '-'}
+            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
+                ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
             </td>`;
         });
     });
@@ -384,7 +385,6 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     return rowHtml;
 }
 
-// Fungsi bantu navigasi filter
 window.setViewHari = (num) => {
     localStorage.setItem('viewHari', num);
     showHalamanRekap();
