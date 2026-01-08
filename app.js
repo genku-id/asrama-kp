@@ -3,7 +3,7 @@ import {
     collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Update nama jabatan sesuai instruksi (Formal & Tanpa Angka)
+// 1. Update nama jabatan sesuai instruksi (Formal & Tanpa Angka)
 const strukturOrganisasi = {
     "DAERAH": ["KEIMAMAN DAERAH", "WAKIL KEIMAMAN DAERAH", "MUBALIGH DAERAH"],
     "DESA_JABATAN": ["KEIMAMAN DESA", "MUBALIGH DESA"],
@@ -18,7 +18,7 @@ const strukturOrganisasi = {
 
 let html5QrCode;
 
-// --- 1. LOGIN ---
+// --- LOGIN ---
 window.showLoginPanitia = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -34,7 +34,7 @@ window.showLoginPanitia = () => {
     };
 };
 
-// --- 2. DASHBOARD ---
+// --- DASHBOARD ---
 window.showDashboardAdmin = () => {
     const curHari = localStorage.getItem('activeHari') || "1";
     const curSesi = localStorage.getItem('activeSesi') || "SUBUH";
@@ -81,7 +81,7 @@ window.simpanSesiLaluScan = () => {
     mulaiScanner();
 };
 
-// --- 3. SCANNER ---
+// --- SCANNER ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
@@ -98,7 +98,7 @@ window.stopScanner = async () => {
     scanSec.classList.add('hidden');
 };
 
-// --- 4. PROSES ABSENSI ---
+// --- PROSES ABSENSI ---
 window.prosesAbsensiOtomatis = async (isiBarcode) => {
     const h = localStorage.getItem('activeHari');
     const s = localStorage.getItem('activeSesi');
@@ -117,38 +117,42 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
             sesi: s,
             waktu_absen: serverTimestamp()
         });
-        tampilkanSukses(identitas, desa);
+        // Pastikan variabel desa dikirim dengan benar agar tidak undefined
+        tampilkanSukses(identitas, desa, s);
     } catch (e) { alert("Error: " + e.message); }
 };
 
-function tampilkanSukses(identitas, desa) {
+// 2. Perbaikan Overlay (Menghilangkan Undefined & Merapikan Tampilan)
+function tampilkanSukses(identitas, desa, sesi) {
     const overlay = document.getElementById('success-overlay');
     overlay.style.display = 'flex';
     
-    // Logika Overlay rapi sesuai instruksi
     let textMain = "";
     let subText = "";
 
+    // Regex untuk menghapus angka di akhir jabatan (Hanya berlaku untuk non-peserta)
+    const hapusAngka = (str) => str.replace(/\s\d+$/, '');
+
     if (identitas.includes("Peserta")) {
-        // Kelompok
+        // Kelompok Kiriman
         textMain = identitas;
-        subText = desa;
+        subText = `${desa} (${sesi})`;
     } else if (identitas.includes("DAERAH")) {
-        // Pengurus Daerah (Identitas sudah berisi jabatan)
-        textMain = identitas.replace(/\s\d+$/, '');
-        subText = "KULON PROGO";
+        // Pengurus Daerah
+        textMain = hapusAngka(identitas);
+        subText = `KULON PROGO (${sesi})`;
     } else {
         // Pengurus Desa
-        textMain = `${identitas.replace(/\s\d+$/, '')}`;
-        subText = desa;
+        textMain = hapusAngka(identitas);
+        subText = `${desa} (${sesi})`;
     }
 
     overlay.innerHTML = `
         <div class="celebration-wrap">
             <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-            <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase;">${textMain}</div>
-            <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; margin-top:5px; text-transform:uppercase;">${subText}</div>
-            <p style="font-size:18px; margin-top:15px; font-weight:bold;">ABSEN BERHASIL!</p>
+            <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase; margin-bottom:10px;">${textMain}</div>
+            <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase;">${subText}</div>
+            <p style="font-size:18px; margin-top:20px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:10px;">ABSEN BERHASIL!</p>
             <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
         </div>
     `;
@@ -158,7 +162,7 @@ function tampilkanSukses(identitas, desa) {
     setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2500);
 }
 
-// --- 5. GENERATOR KARTU ---
+// --- GENERATOR KARTU ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -174,7 +178,7 @@ window.showHalamanBuatKartu = () => {
             <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">BUAT 2 KARTU SEKARANG</button>
             <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
         </div>
-        <div id="container-kartu-hasil"></div>
+        <div id="container-kartu-hasil" style="display:flex; flex-direction:column; align-items:center; margin-top:20px;"></div>
     `;
     const katSel = document.getElementById('select-kategori-kartu');
     const subContainer = document.getElementById('sub-pilihan-container');
@@ -225,7 +229,7 @@ function render2Kartu(container, level, desa, identitas) {
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "display:flex; flex-direction:column; align-items:center; margin-bottom:20px;";
+        div.style = "display:flex; flex-direction:column; align-items:center; margin-bottom:30px;";
         div.innerHTML = `
             <div id="${cardId}" class="qris-container">
                 <div class="qris-header" style="background:#0056b3;"><h3>KARTU ASRAMA</h3></div>
@@ -244,17 +248,7 @@ function render2Kartu(container, level, desa, identitas) {
     }
 }
 
-window.downloadKartu = (elementId, fileName) => {
-    const target = document.getElementById(elementId);
-    html2canvas(target).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Kartu_${fileName}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    });
-};
-
-// --- 6. REKAP ---
+// 3. Perbaikan Laporan (Sejajar, Se-warna, Ramping)
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
@@ -296,16 +290,14 @@ window.showHalamanRekap = async () => {
             <div style="background:#f4f7f6; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #ddd;">
                 <p style="margin:0 0 8px 0; font-weight:bold; font-size:14px; color:#0056b3;">PILIH HARI:</p>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    ${[1,2,3,4,5,6].map(num => `
-                        <button onclick="setViewHari(${num})" style="flex:1; min-width:50px; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari == num ? '#0056b3' : '#ccc'}; color:white;">H${num}</button>
-                    `).join('')}
+                    ${[1,2,3,4,5,6].map(num => `<button onclick="setViewHari(${num})" style="flex:1; min-width:50px; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari == num ? '#0056b3' : '#ccc'}; color:white;">H${num}</button>`).join('')}
                     <button onclick="setViewHari('all')" style="flex:2; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI (24 KOLOM)</button>
                 </div>
             </div>
 
             <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
                 <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '1000px'}; font-family: sans-serif;">
-                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; font-size:24px;">REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}</h2>
+                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; font-size:24px; text-transform:uppercase;">REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}</h2>
                     <table style="width:100%; border-collapse: collapse; font-size:14px; border: 2px solid #ddd;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
@@ -318,18 +310,21 @@ window.showHalamanRekap = async () => {
                         </thead>
                         <tbody>`;
 
-        html += renderPenyekatSticky("PENGURUS DAERAH", "#0056b3", totalSesi, "white", "15px");
+        // Penggunaan 1 warna penyekat (Biru)
+        const biruPenyekat = "#0056b3";
+
+        html += renderPenyekatSticky("PENGURUS DAERAH", biruPenyekat, totalSesi, "white", "15px");
         dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
 
-        html += renderPenyekatSticky("PENGURUS DESA", "#0056b3", totalSesi, "white", "15px");
+        html += renderPenyekatSticky("PENGURUS DESA", biruPenyekat, totalSesi, "white", "15px");
         Object.keys(dataRekap.PENGURUS_DESA).sort().forEach(desa => {
-            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "13px");
+            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px", "13px");
             dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
         });
 
-        html += renderPenyekatSticky("KIRIMAN KELOMPOK :", "#0056b3", totalSesi, "white", "15px");
+        html += renderPenyekatSticky("KIRIMAN KELOMPOK :", biruPenyekat, totalSesi, "white", "15px");
         Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
-            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "13px");
+            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px", "13px");
             dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari, true));
         });
 
@@ -347,15 +342,22 @@ function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, 
 }
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
-    let namaTampil = p.nama.includes("Peserta") ? p.nama : p.nama.replace(/\s\d+$/, '');
+    // Fungsi untuk menghapus angka di akhir secara otomatis agar laporan bersih
+    const hapusAngka = (str) => str.replace(/\s\d+$/, '');
+    let namaTampil = p.nama.includes("Peserta") ? p.nama : hapusAngka(p.nama);
+    
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
     let prefix = isKelompok ? "- " : "";
     let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">${prefix}${namaTampil}</td>`;
+    
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
             const jam = matrix[p.id][`H${h}_${s}`];
-            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;"><span style="color:#28a745; font-weight:bold; font-size:13px;">${jam ? 'HADIR ' + jam : '-'}</span></td>`;
+            // Render Sejajar: HADIR JAM
+            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
+                ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
+            </td>`;
         });
     });
     rowHtml += `</tr>`;
@@ -363,6 +365,16 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
 }
 
 window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
+window.downloadKartu = (elementId, fileName) => {
+    const target = document.getElementById(elementId);
+    html2canvas(target).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Kartu_${fileName}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+};
+
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
     html2canvas(target, { scale: 2 }).then(canvas => {
