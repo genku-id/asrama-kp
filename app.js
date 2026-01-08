@@ -131,19 +131,30 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
 // --- OVERLAY SUKSES (BERSIH & SEJAJAR) ---
 function tampilkanSukses(identitas, desa, sesi) {
     const overlay = document.getElementById('success-overlay');
+    
+    // Sembunyikan angka untuk tampilan layar
+    const namaBersih = identitas.replace(/\s\d+$/, '');
+
+    // PAKSA FULL LAYAR & Z-INDEX TINGGI
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.zIndex = '99999'; // Angka dewa agar di depan kamera
     overlay.style.display = 'flex';
-    
-    // Ganti Angka 1 jadi . dan Angka 2 jadi ..
-   const namaBersih = identitas.replace(/\s\d+$/, '');
-    
+    overlay.style.backgroundColor = 'rgba(0, 86, 179, 0.95)'; // Biru solid agar kamera tertutup
+
     overlay.innerHTML = `
-    <div class="celebration-wrap">
-        <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-        <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase; margin-bottom:10px;">${namaBersih}</div>
-        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase;">${desa}</div>
-        <p style="font-size:18px; margin-top:20px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:10px; color: white;">
+    <div class="celebration-wrap" style="text-align:center; width:100%; padding:20px;">
+        <div class="text-top" style="color:white; font-size:1.2rem;">Alhamdulillah Jazaa Kumullahu Koiroo</div>
+        <div class="text-main" style="font-size:2.5rem; color:white; font-weight:bold; text-transform:uppercase; margin:20px 0;">${namaBersih}</div>
+        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase; margin-bottom:20px;">${desa}</div>
+        
+        <div style="font-size:22px; font-weight:bold; color: white; border-top: 2px solid rgba(255,255,255,0.3); padding-top:20px;">
             ABSEN ${sesi} BERHASIL!
-        </p>
+        </div>
+        
         <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
     </div>`;
 
@@ -151,7 +162,6 @@ function tampilkanSukses(identitas, desa, sesi) {
     if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
 
-    // Overlay hilang dan buka kunci scan setelah 3 detik
     setTimeout(() => { 
         overlay.style.display = 'none';
         sedangProses = false; 
