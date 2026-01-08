@@ -120,12 +120,25 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
     } catch (e) { alert("Error: " + e.message); }
 };
 
-function tampilkanSukses(identitas) {
+function tampilkanSukses(identitas, desa) {
+    // Hapus angka 1 atau 2 di akhir jika bukan kategori kelompok
+    const namaBersih = identitas.replace(/\s\d+$/, ''); 
     const overlay = document.getElementById('success-overlay');
+    
     overlay.style.display = 'flex';
-    overlay.innerHTML = `<div class="celebration-wrap"><div class="text-top">ALHAMDULILLAH</div><div class="text-main">${identitas}</div><p>ABSEN BERHASIL!</p></div>`;
+    overlay.innerHTML = `
+        <div class="celebration-wrap">
+            <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
+            <div class="text-main" style="font-size:2.2rem; line-height:1.2;">${namaBersih}</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#FFD700; margin-top:5px; text-transform:uppercase;">${desa !== 'DAERAH' ? desa : ''}</div>
+            <p style="font-size:18px; margin-top:15px; font-weight:bold;">ABSEN BERHASIL!</p>
+            <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
+        </div>
+    `;
+    const sound = document.getElementById('success-sound');
+    if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
-    setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2000);
+    setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2500);
 }
 
 // --- 5. GENERATOR KARTU (2 KARTU) ---
@@ -187,10 +200,10 @@ window.showHalamanBuatKartu = () => {
         }
     };
 };
-
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
-        const namaUnik = `${identitas} ${i}`;
+        const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
+        const namaUnik = `${identitas} ${labelPeserta}${i}`;
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
@@ -212,7 +225,6 @@ function render2Kartu(container, level, desa, identitas) {
         new QRCode(document.getElementById(`qr-${cardId}`), { text: isiBarcode, width: 150, height: 150 });
     }
 }
-
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
     html2canvas(target).then(canvas => {
@@ -223,7 +235,6 @@ window.downloadKartu = (elementId, fileName) => {
     });
 };
 
-// --- 6. REKAP TERORGANISIR LANDSCAPE 5 KOLOM ---
 window.showHalamanRekap = async () => {
     const h = localStorage.getItem('activeHari') || "1";
     const s = localStorage.getItem('activeSesi') || "SUBUH";
@@ -233,27 +244,27 @@ window.showHalamanRekap = async () => {
     try {
         const q = query(collection(db, "absensi_asrama"), where("hari", "==", h), where("sesi", "==", s));
         const snap = await getDocs(q);
-        let rekap = { DAERAH: [], DESA: {}, KELOMPOK: { "WATES":[], "PENGASIH":[], "LENDAH":[], "TEMON":[], "SAMIGALUH":[] } };
+        let rekap = { DAERAH: [], DESA: [], KELOMPOK: { "WATES":[], "PENGASIH":[], "LENDAH":[], "TEMON":[], "SAMIGALUH":[] } };
         
         snap.forEach(doc => {
             const p = doc.data();
             if(p.level === "DAERAH") rekap.DAERAH.push(p);
-            else if(p.level === "DESA") {
-                if(!rekap.DESA[p.desa]) rekap.DESA[p.desa] = [];
-                rekap.DESA[p.desa].push(p);
-            } else {
-                if(rekap.KELOMPOK[p.desa]) rekap.KELOMPOK[p.desa].push(p);
-            }
+            else if(p.level === "DESA") rekap.DESA.push(p);
+            else { if(rekap.KELOMPOK[p.desa]) rekap.KELOMPOK[p.desa].push(p); }
         });
 
         let html = `
-            <div id="print-rekap-area" style="background:white; padding:20px; width:1000px;">
+            <div id="print-rekap-area" style="background:white; padding:20px; width:1000px; font-family: sans-serif;">
                 <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:2px solid #0056b3; padding-bottom:10px;">LAPORAN KEHADIRAN ASRAMA (HARI ${h} - ${s})</h2>
                 
-                <div style="background:#0056b3; color:white; padding:8px; font-weight:bold; margin-bottom:10px;">PENGURUS DAERAH & DESA</div>
+                <div style="background:#0056b3; color:white; padding:8px; font-weight:bold; margin-bottom:10px;">PENGURUS DAERAH</div>
                 <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
-                    ${rekap.DAERAH.map(p => renderBox(p, '24%')).join('')}
-                    ${Object.keys(rekap.DESA).map(desa => rekap.DESA[desa].map(p => renderBox(p, '24%')).join('')).join('')}
+                    ${rekap.DAERAH.length > 0 ? rekap.DAERAH.map(p => renderBox(p, '32%')).join('') : '<p style="font-size:12px; color:#999; padding-left:10px;">Belum ada data</p>'}
+                </div>
+
+                <div style="background:#0056b3; color:white; padding:8px; font-weight:bold; margin-bottom:10px;">PENGURUS DESA</div>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px;">
+                    ${rekap.DESA.length > 0 ? rekap.DESA.sort((a,b)=>a.desa.localeCompare(b.desa)).map(p => renderBox(p, '24%')).join('') : '<p style="font-size:12px; color:#999; padding-left:10px;">Belum ada data</p>'}
                 </div>
 
                 <div style="background:#0056b3; color:white; padding:8px; font-weight:bold; margin-bottom:10px; text-align:center;">REKAPITULASI KELOMPOK</div>
@@ -262,7 +273,9 @@ window.showHalamanRekap = async () => {
                         <div style="border:1px solid #0056b3; border-radius:5px; overflow:hidden;">
                             <div style="background:#eef2f7; text-align:center; font-weight:bold; padding:5px; font-size:12px; border-bottom:1px solid #0056b3;">${desa}</div>
                             <div style="min-height:100px; padding:5px;">
-                                ${rekap.KELOMPOK[desa].sort((a,b)=>a.nama.localeCompare(b.nama)).map(p => renderSmallBox(p)).join('')}
+                                ${rekap.KELOMPOK[desa].length > 0 
+                                    ? rekap.KELOMPOK[desa].sort((a,b)=>a.nama.localeCompare(b.nama)).map(p => renderSmallBox(p)).join('') 
+                                    : '<p style="font-size:9px; color:#ccc; text-align:center; margin-top:10px;">Kosong</p>'}
                             </div>
                         </div>
                     `).join('')}
@@ -271,21 +284,23 @@ window.showHalamanRekap = async () => {
             <button onclick="downloadLaporan()" class="primary-btn" style="background:#0056b3; margin-top:20px;">📥 DOWNLOAD LAPORAN (LANDSCAPE)</button>
             <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:10px;">KEMBALI</button>`;
         
-        content.innerHTML = `<div style="overflow-x:auto;">${html}</div>`;
+        content.innerHTML = `<div style="overflow-x:auto; padding-bottom:20px;">${html}</div>`;
     } catch (e) { alert(e.message); showDashboardAdmin(); }
 };
 
 function renderBox(p, width) {
     const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '--:--';
     return `<div style="width:${width}; background:#f9f9f9; border:1px solid #ddd; padding:8px; border-radius:5px; font-size:12px;">
-                <b>${p.nama}</b><br><span style="color:#0056b3; font-weight:bold; font-size:10px;">HADIR ${jam}</span>
+                <div style="font-size:10px; color:#666;">${p.level === 'DESA' ? 'DESA ' + p.desa : 'DAERAH'}</div>
+                <b>${p.nama.replace(/\s\d+$/, '')}</b><br>
+                <span style="color:#0056b3; font-weight:bold; font-size:10px;">HADIR ${jam}</span>
             </div>`;
 }
 
 function renderSmallBox(p) {
     const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '--:--';
     return `<div style="padding:5px; border-bottom:1px solid #eee; font-size:11px;">
-                <b>${p.nama}</b><br><span style="color:#0056b3; font-weight:bold; font-size:9px;">HADIR ${jam}</span>
+                <b style="font-size:10px;">${p.nama}</b><br><span style="color:#0056b3; font-weight:bold; font-size:9px;">HADIR ${jam}</span>
             </div>`;
 }
 
