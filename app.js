@@ -116,7 +116,7 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
             sesi: s,
             waktu_absen: serverTimestamp()
         });
-        tampilkanSukses(`${identitas} (${s})`);
+        tampilkanSukses(`${identitas} ${desa} (${s})`);
     } catch (e) { alert("Error: " + e.message); }
 };
 
