@@ -233,11 +233,10 @@ window.showHalamanRekap = async () => {
     content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data H${curHari} - ${curSesi}...</h3></div>`;
     
     try {
-        // Filter data sesuai sesi yang sedang aktif
+        // KODE DIPERBARUI: Mengambil data absensi_asrama tanpa filter berlebih dulu
         const q = query(collection(db, "absensi_asrama"), 
                   where("hari", "==", curHari), 
-                  where("sesi", "==", curSesi),
-                  orderBy("waktu_absen", "desc"));
+                  where("sesi", "==", curSesi));
         
         const snap = await getDocs(q);
         
@@ -249,21 +248,29 @@ window.showHalamanRekap = async () => {
 
         if(snap.empty) {
             html += `<p style="text-align:center; color:#999; padding:20px;">Belum ada yang absen di sesi ini.</p>`;
-        }
+        } else {
+            // Urutkan manual di sini agar tidak butuh Index Descending yang rumit
+            const dataSorted = snap.docs.map(doc => doc.data()).sort((a, b) => {
+                return (b.waktu_absen?.toMillis() || 0) - (a.waktu_absen?.toMillis() || 0);
+            });
 
-        snap.forEach(doc => {
-            const p = doc.data();
-            const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
-            html += `
-                <div style="background:white; border-bottom:1px solid #eee; padding:12px; display:flex; justify-content:space-between; align-items:center;">
-                    <div><div style="font-weight:bold;">${p.nama}</div><div style="font-size:11px; color:#666;">${p.desa}</div></div>
-                    <div style="color:#0056b3; font-weight:bold;">${jam}</div>
-                </div>`;
-        });
+            dataSorted.forEach(p => {
+                const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
+                html += `
+                    <div style="background:white; border-bottom:1px solid #eee; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div><div style="font-weight:bold;">${p.nama}</div><div style="font-size:11px; color:#666;">${p.desa}</div></div>
+                        <div style="color:#0056b3; font-weight:bold;">${jam}</div>
+                    </div>`;
+            });
+        }
 
         html += `<button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:20px;">KEMBALI</button>`;
         content.innerHTML = html;
-    } catch (e) { alert(e.message); showDashboardAdmin(); }
+    } catch (e) { 
+        console.error(e);
+        alert("Gagal memuat rekap. Pastikan Index sudah aktif di Console."); 
+        showDashboardAdmin(); 
+    }
 };
 
 // Inisialisasi
