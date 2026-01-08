@@ -86,15 +86,23 @@ window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
     html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (txt) => {
-        await window.stopScanner();
+    html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: 250 }, async (txt) => {
         prosesAbsensiOtomatis(txt); 
-    }).catch(e => { alert("Kamera error!"); window.stopScanner(); });
+    }).catch(e => { 
+        alert("Kamera error!"); 
+        window.stopScanner(); 
+    });
 };
 
 window.stopScanner = async () => {
     const scanSec = document.getElementById('scanner-section');
-    if (html5QrCode) { try { await html5QrCode.stop(); } catch (e) {} }
+    if (html5QrCode) { 
+        try { 
+            await html5QrCode.stop(); 
+        } catch (e) {
+            console.log("Kamera sudah mati");
+        } 
+    }
     scanSec.classList.add('hidden');
 };
 
@@ -130,7 +138,6 @@ function tampilkanSukses(identitas, desa, sesi) {
     let textMain = "";
     let subText = "";
 
-    // Regex untuk menghapus angka di akhir jabatan (Hanya berlaku untuk non-peserta)
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
 
     if (identitas.includes("Peserta")) {
@@ -148,18 +155,21 @@ function tampilkanSukses(identitas, desa, sesi) {
     }
 
     overlay.innerHTML = `
-        <div class="celebration-wrap">
-            <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-            <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase; margin-bottom:10px;">${textMain}</div>
-            <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase;">${subText}</div>
-            <p style="font-size:18px; margin-top:20px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:10px;">ABSEN BERHASIL!</p>
-            <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
-        </div>
-    `;
+    <div class="celebration-wrap">
+        <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
+        <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase; margin-bottom:10px;">${textMain}</div>
+        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase;">${subText}</div>
+        <p style="font-size:18px; margin-top:20px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:10px; color: white;">
+            ABSEN ${sesi} BERHASIL!
+        </p>
+        <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
+    </div>
+`;
     const sound = document.getElementById('success-sound');
     if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
-    setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2500);
+    setTimeout(() => { 
+        overlay.style.display = 'none';  }, 2500);
 }
 
 // --- GENERATOR KARTU ---
@@ -225,7 +235,9 @@ window.showHalamanBuatKartu = () => {
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
         const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
-        const namaUnik = `${identitas} ${labelPeserta}${i}`;
+       
+        const identitasBersih = level !== "KELOMPOK" ? identitas.replace(/\s\d+$/, '') : identitas;
+        const namaUnik = `${identitasBersih} ${labelPeserta}${i}`;
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
@@ -234,9 +246,8 @@ function render2Kartu(container, level, desa, identitas) {
             <div id="${cardId}" class="qris-container">
                 <div class="qris-header" style="background:#0056b3;"><h3>KARTU ASRAMA</h3></div>
                 <div class="qris-event-name">
-                    <b style="color:#0056b3;">${level}</b><br>
-                    DESA : ${desa}<br>
-                    <b>${namaUnik}</b>
+                        <span style="text-transform: uppercase; font-weight: bold;">${desa}</span><br>
+                    <b style="font-size: 1.1em;">${namaUnik}</b>
                 </div>
                 <div id="qr-${cardId}" style="display:flex; justify-content:center; margin:15px 0;"></div>
                 <div class="qris-footer" style="border-top: 5px solid #0056b3;"><p>ASRAMA KULON PROGO</p></div>
