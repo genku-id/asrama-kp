@@ -1,9 +1,8 @@
 import { db } from './firebase-config.js';
 import { 
-    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, orderBy, getDocs 
+    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, orderBy, getDocs, where 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// DATA STRUKTUR (Hierarki Baru)
 const strukturOrganisasi = {
     "DAERAH": ["KYAI DAE", "WAKIL KYAI DAE", "MUBALIGH DAE"],
     "DESA_JABATAN": ["KYAI DESA", "MUBALIGH DESA"],
@@ -18,7 +17,7 @@ const strukturOrganisasi = {
 
 let html5QrCode;
 
-// --- 1. TAMPILAN AWAL (LOGIN PANITIA) ---
+// --- 1. LOGIN ---
 window.showLoginPanitia = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -26,33 +25,51 @@ window.showLoginPanitia = () => {
         <input type="password" id="pass-panitia" placeholder="Masukkan Sandi Petugas...">
         <button id="btn-masuk-panitia" class="primary-btn" style="background:#0056b3;">MASUK</button>
     `;
-
     document.getElementById('btn-masuk-panitia').onclick = () => {
-        const pass = document.getElementById('pass-panitia').value;
-        if (pass === "123") { 
+        if (document.getElementById('pass-panitia').value === "123") { 
             localStorage.setItem('isPanitia', 'true');
             showDashboardAdmin();
-        } else {
-            alert("Sandi Salah!");
-        }
+        } else { alert("Sandi Salah!"); }
     };
 };
 
-// --- 2. DASHBOARD SCANNING ---
+// --- 2. DASHBOARD (DENGAN PILIHAN SESI) ---
 window.showDashboardAdmin = () => {
+    // Ambil sesi terakhir yang dipilih dari memori HP agar tidak pilih ulang terus
+    const curHari = localStorage.getItem('activeHari') || "1";
+    const curSesi = localStorage.getItem('activeSesi') || "SUBUH";
+
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
-        <div style="text-align:center; margin-bottom:20px;">
-            <h1 style="color:#0056b3; margin-bottom:5px;">MODE SCANNER</h1>
-            <p style="font-size:14px; color:#666;">Scan kartu untuk absen otomatis</p>
+        <div style="text-align:center; margin-bottom:10px;">
+            <h1 style="color:#0056b3; margin-bottom:5px;">PANITIA SCAN</h1>
+            <div style="background:#eef2f7; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #d1d9e6;">
+                <p style="margin:0 0 5px 0; font-size:12px; font-weight:bold; color:#555;">SETTING SESI AKTIF:</p>
+                <div style="display:flex; gap:5px;">
+                    <select id="set-hari" style="margin:0; flex:1;">
+                        ${[1,2,3,4,5,6].map(h => `<option value="${h}" ${curHari == h ? 'selected' : ''}>HARI ${h}</option>`).join('')}
+                    </select>
+                    <select id="set-sesi" style="margin:0; flex:1;">
+                        ${["SUBUH", "PAGI", "SIANG", "MALAM"].map(s => `<option value="${s}" ${curSesi == s ? 'selected' : ''}>${s}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
         </div>
-        <button onclick="showHalamanBuatKartu()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📇 BUAT KARTU BARCODE</button>
+        <button onclick="simpanSesiLaluScan()" class="scan-btn" style="height:100px; font-size:20px; background:#0056b3; margin-top:0;">📸 SCAN SEKARANG</button>
         <button onclick="showHalamanRekap()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📊 REKAP KEHADIRAN</button>
-        <button onclick='mulaiScanner()' class="scan-btn" style="height:120px; font-size:22px; background:#0056b3;">📸 SCAN SEKARANG</button>
+        <button onclick="showHalamanBuatKartu()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📇 BUAT KARTU BARCODE</button>
     `;
 };
 
-// --- 3. LOGIKA SCANNER ---
+window.simpanSesiLaluScan = () => {
+    const h = document.getElementById('set-hari').value;
+    const s = document.getElementById('set-sesi').value;
+    localStorage.setItem('activeHari', h);
+    localStorage.setItem('activeSesi', s);
+    mulaiScanner();
+};
+
+// --- 3. SCANNER ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
@@ -60,10 +77,7 @@ window.mulaiScanner = () => {
     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (txt) => {
         await window.stopScanner();
         prosesAbsensiOtomatis(txt); 
-    }).catch(e => {
-        alert("Kamera error!");
-        window.stopScanner();
-    });
+    }).catch(e => { alert("Kamera error!"); window.stopScanner(); });
 };
 
 window.stopScanner = async () => {
@@ -72,32 +86,31 @@ window.stopScanner = async () => {
     scanSec.classList.add('hidden');
 };
 
-// --- 4. PROSES ABSENSI OTOMATIS (LANGSUNG HADIR) ---
+// --- 4. PROSES ABSENSI (MULTI-SESI) ---
 window.prosesAbsensiOtomatis = async (isiBarcode) => {
+    const h = localStorage.getItem('activeHari');
+    const s = localStorage.getItem('activeSesi');
+
     try {
         const part = isiBarcode.split('|');
         if (part.length < 3) return alert("Barcode Tidak Valid!");
 
-        const level = part[0];
-        const desa = part[1];
-        const identitas = part[2];
-        const idDoc = isiBarcode.replace(/\|/g, '_'); 
+        const [level, desa, identitas] = part;
+        // ID Unik per orang per sesi: BOJONG_1_H1_SUBUH
+        const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
 
-        const docRef = doc(db, "peserta_asrama", idDoc);
-        const docSnap = await getDoc(docRef);
+        const docRef = doc(db, "absensi_asrama", idDoc);
+        
+        await setDoc(docRef, {
+            nama: identitas, 
+            desa: desa,
+            level: level,
+            hari: h,
+            sesi: s,
+            waktu_absen: serverTimestamp()
+        });
 
-        if (docSnap.exists()) {
-            await updateDoc(docRef, { status_hadir: true, waktu_absen: serverTimestamp() });
-        } else {
-            await setDoc(docRef, {
-                nama: identitas, 
-                desa: desa,
-                level: level,
-                status_hadir: true,
-                waktu_absen: serverTimestamp()
-            });
-        }
-        tampilkanSukses(identitas);
+        tampilkanSukses(`${identitas} (${s})`);
     } catch (e) { alert("Error: " + e.message); }
 };
 
@@ -108,31 +121,25 @@ function tampilkanSukses(identitas) {
     overlay.innerHTML = `
         <div class="celebration-wrap">
             <div class="text-top">ALHAMDULILLAH</div>
-            <div class="text-main">${identitas}</div>
-            <p style="font-size:24px; font-weight:bold;">BERHASIL ABSEN!</p>
-            <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
+            <div class="text-main" style="font-size:2rem;">${identitas}</div>
+            <p style="font-size:18px; font-weight:bold;">ABSEN BERHASIL!</p>
         </div>
     `;
-    const sound = document.getElementById('success-sound');
-    if(sound) sound.play().catch(e => console.log("Audio blocked"));
     if (navigator.vibrate) navigator.vibrate(200);
-    setTimeout(() => {
-        overlay.style.display = 'none';
-        showDashboardAdmin();
-    }, 2500);
+    setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2000);
 }
 
-// --- 6. GENERATOR KARTU (2 BARCODE PER PILIHAN) ---
+// --- 6. GENERATOR KARTU (TETAP SAMA) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
         <div class="card">
-            <h3 style="color:#0056b3;">Generator Kartu Asrama</h3>
+            <h3 style="color:#0056b3;">Generator Kartu</h3>
             <select id="select-kategori-kartu">
                 <option value="">-- Pilih Kategori --</option>
                 <option value="DAERAH">PENGURUS DAERAH</option>
                 <option value="DESA">PENGURUS DESA</option>
-                <option value="KELOMPOK">KELOMPOK (31 KLP)</option>
+                <option value="KELOMPOK">KELOMPOK</option>
             </select>
             <div id="sub-pilihan-container" style="margin-top:10px;"></div>
             <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">BUAT 2 KARTU SEKARANG</button>
@@ -168,7 +175,6 @@ window.showHalamanBuatKartu = () => {
         const container = document.getElementById('container-kartu-hasil');
         container.innerHTML = "";
         const kategori = katSel.value;
-
         if (kategori === "DAERAH") {
             strukturOrganisasi.DAERAH.forEach(jab => render2Kartu(container, "DAERAH", "DAERAH", jab));
         } else if (kategori === "DESA") {
@@ -189,7 +195,6 @@ function render2Kartu(container, level, desa, identitas) {
         const namaUnik = `${identitas} ${i}`;
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
-        
         const div = document.createElement('div');
         div.innerHTML = `
             <div id="${cardId}" class="qris-container" style="margin-bottom:10px;">
@@ -219,36 +224,41 @@ window.downloadKartu = (elementId, fileName) => {
     });
 };
 
-// --- 7. HALAMAN REKAP KEHADIRAN (BERDASARKAN KATEGORI) ---
+// --- 7. REKAP (FILTER PER SESI) ---
 window.showHalamanRekap = async () => {
-    const content = document.getElementById('pendaftar-section');
-    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data...</h3></div>`;
-    try {
-        const q = query(collection(db, "peserta_asrama"), orderBy("waktu_absen", "desc"));
-        const snap = await getDocs(q);
-        let hadir = { DAERAH: [], DESA: [], KELOMPOK: [] };
-        snap.forEach(doc => {
-            const d = doc.data();
-            if(hadir[d.level]) hadir[d.level].push(d);
-        });
+    const curHari = localStorage.getItem('activeHari') || "1";
+    const curSesi = localStorage.getItem('activeSesi') || "SUBUH";
 
+    const content = document.getElementById('pendaftar-section');
+    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data H${curHari} - ${curSesi}...</h3></div>`;
+    
+    try {
+        // Filter data sesuai sesi yang sedang aktif
+        const q = query(collection(db, "absensi_asrama"), 
+                  where("hari", "==", curHari), 
+                  where("sesi", "==", curSesi),
+                  orderBy("waktu_absen", "desc"));
+        
+        const snap = await getDocs(q);
+        
         let html = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; color:#0056b3;">Laporan Kehadiran</h3>
+                <h3 style="margin:0; color:#0056b3;">Laporan H${curHari} - ${curSesi}</h3>
                 <button onclick="showDashboardAdmin()" style="background:#666; color:white; border:none; padding:5px 12px; border-radius:8px;">X</button>
             </div>`;
 
-        ["DAERAH", "DESA", "KELOMPOK"].forEach(lvl => {
-            html += `<div style="background:#0056b3; color:white; padding:8px 15px; font-weight:bold; margin-top:15px; border-radius:5px;">${lvl}</div>`;
-            if(hadir[lvl].length === 0) html += `<p style="font-size:12px; color:#999; padding:10px;">Belum ada data.</p>`;
-            hadir[lvl].forEach(p => {
-                const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
-                html += `
-                    <div style="background:white; border-bottom:1px solid #eee; padding:12px; display:flex; justify-content:space-between; align-items:center;">
-                        <div><div style="font-weight:bold;">${p.nama}</div><div style="font-size:11px; color:#666;">${p.desa}</div></div>
-                        <div style="color:#0056b3; font-weight:bold;">${jam}</div>
-                    </div>`;
-            });
+        if(snap.empty) {
+            html += `<p style="text-align:center; color:#999; padding:20px;">Belum ada yang absen di sesi ini.</p>`;
+        }
+
+        snap.forEach(doc => {
+            const p = doc.data();
+            const jam = p.waktu_absen ? p.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
+            html += `
+                <div style="background:white; border-bottom:1px solid #eee; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><div style="font-weight:bold;">${p.nama}</div><div style="font-size:11px; color:#666;">${p.desa}</div></div>
+                    <div style="color:#0056b3; font-weight:bold;">${jam}</div>
+                </div>`;
         });
 
         html += `<button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:20px;">KEMBALI</button>`;
