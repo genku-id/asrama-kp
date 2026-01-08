@@ -3,6 +3,15 @@ import {
     collection, getDoc, doc, setDoc, updateDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// DATA WILAYAH (Wajib ada agar Generator Kartu Berjalan)
+const dataWilayah = {
+    "WATES": ["KREMBANGAN", "BOJONG", "GIRIPENI 1", "GIRIPENI 2", "HARGOWILIS", "TRIHARJO"],
+    "PENGASIH": ["MARGOSARI", "SENDANGSARI", "BANJARHARJO", "NANGGULAN", "GIRINYONO", "JATIMULYO", "SERUT"],
+    "TEMON": ["TAWANGSARI", "HARGOREJO", "SIDATAN 1", "SIDATAN 2", "JOGOBOYO", "JOGORESAN"],
+    "LENDAH": ["BONOSORO", "BUMIREJO", "CARIKAN", "NGENTAKREJO", "TUKSONO", "SRIKAYANGAN"],
+    "SAMIGALUH": ["PENGOS", "SUREN", "KALIREJO", "PAGERHARJO", "SEPARANG", "KEBONHARJO"]
+};
+
 let html5QrCode;
 
 // --- 1. TAMPILAN AWAL (LOGIN PANITIA) ---
@@ -16,7 +25,7 @@ window.showLoginPanitia = () => {
 
     document.getElementById('btn-masuk-panitia').onclick = () => {
         const pass = document.getElementById('pass-panitia').value;
-        if (pass === "123") { // Silakan ganti sandi ini
+        if (pass === "123") { 
             localStorage.setItem('isPanitia', 'true');
             showDashboardAdmin();
         } else {
@@ -65,7 +74,6 @@ window.prosesAbsensiAsrama = async (idKartu) => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            // JIKA TERDAFTAR: Langsung absen
             const data = docSnap.data();
             await updateDoc(docRef, {
                 status_hadir: true,
@@ -73,7 +81,6 @@ window.prosesAbsensiAsrama = async (idKartu) => {
             });
             tampilkanSukses(data.nama);
         } else {
-            // JIKA BELUM: Form Daftar
             tampilkanFormRegistrasi(idKartu);
         }
     } catch (e) { alert("Error: " + e.message); }
@@ -89,11 +96,7 @@ window.tampilkanFormRegistrasi = (idKartu) => {
             <input type="text" id="reg-nama-bapak" placeholder="Nama Lengkap...">
             <select id="reg-desa-bapak">
                 <option value="">-- Pilih Desa --</option>
-                <option value="DESA 1">DESA 1</option>
-                <option value="DESA 2">DESA 2</option>
-                <option value="DESA 3">DESA 3</option>
-                <option value="DESA 4">DESA 4</option>
-                <option value="DESA 5">DESA 5</option>
+                ${Object.keys(dataWilayah).map(d => `<option value="${d}">${d}</option>`).join('')}
             </select>
             <input type="text" id="reg-kelompok-bapak" placeholder="Kelompok (Cth: KLP 01)">
             <button onclick="simpanBapakBaru('${idKartu}')" class="primary-btn">SIMPAN & ABSEN</button>
@@ -115,7 +118,7 @@ window.simpanBapakBaru = async (idKartu) => {
     tampilkanSukses(nama);
 };
 
-// --- 6. OVERLAY SUKSES (TETAP PAKAI GAYA LAMAMU) ---
+// --- 6. OVERLAY SUKSES ---
 function tampilkanSukses(nama) {
     const overlay = document.getElementById('success-overlay');
     overlay.style.display = 'flex';
@@ -130,18 +133,15 @@ function tampilkanSukses(nama) {
     
     const sound = document.getElementById('success-sound');
     if(sound) sound.play().catch(e => console.log("Audio blocked"));
-    if (navigator.vibrate) navigator.vibrate(200); // HP Bergetar
+    if (navigator.vibrate) navigator.vibrate(200);
     
     setTimeout(() => {
         overlay.style.display = 'none';
         showDashboardAdmin();
-    }, 2500); // Durasi overlay dipercepat biar bisa scan bapak selanjutnya
+    }, 2500);
 }
 
-// Inisialisasi
-if (localStorage.getItem('isPanitia')) showDashboardAdmin();
-else showLoginPanitia();
-
+// --- 7. GENERATOR KARTU BARCODE ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -177,7 +177,7 @@ window.showHalamanBuatKartu = () => {
 
 window.render5Kartu = (desa, kelompok) => {
     const container = document.getElementById('container-kartu-hasil');
-    container.innerHTML = ""; // Bersihkan tampilan sebelumnya
+    container.innerHTML = ""; 
 
     for (let i = 1; i <= 5; i++) {
         const idUnik = `${kelompok.replace(/\s/g, '')}_${i}`;
@@ -201,7 +201,6 @@ window.render5Kartu = (desa, kelompok) => {
         div.innerHTML = cardHtml;
         container.appendChild(div);
 
-        // Render Barcode
         new QRCode(document.getElementById(`qr-area-${i}`), {
             text: idUnik,
             width: 150,
@@ -219,3 +218,7 @@ window.downloadKartu = (elementId, fileName) => {
         link.click();
     });
 };
+
+// Inisialisasi Aplikasi
+if (localStorage.getItem('isPanitia')) showDashboardAdmin();
+else showLoginPanitia();
