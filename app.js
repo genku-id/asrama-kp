@@ -1,9 +1,8 @@
 import { db } from './firebase-config.js';
 import { 
-    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp 
+    getDoc, doc, setDoc, updateDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// DATA WILAYAH (Wajib ada agar Generator Kartu Berjalan)
 const dataWilayah = {
     "WATES": ["KREMBANGAN", "BOJONG", "GIRIPENI 1", "GIRIPENI 2", "HARGOWILIS", "TRIHARJO"],
     "PENGASIH": ["MARGOSARI", "SENDANGSARI", "BANJARHARJO", "NANGGULAN", "GIRINYONO", "JATIMULYO", "SERUT"],
@@ -40,7 +39,7 @@ window.showDashboardAdmin = () => {
     content.innerHTML = `
         <div style="text-align:center; margin-bottom:20px;">
             <h1 style="color:#0056b3; margin-bottom:5px;">MODE SCANNER</h1>
-            <p style="font-size:14px; color:#666;">Silahkan scan kartu peserta</p>
+            <p style="font-size:14px; color:#666;">Scan kartu untuk absen otomatis</p>
         </div>
         <button onclick="showHalamanBuatKartu()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📇 BUAT KARTU BARCODE</button>
         <button onclick='mulaiScanner()' class="scan-btn" style="height:120px; font-size:22px;">📸 SCAN SEKARANG</button>
@@ -54,7 +53,7 @@ window.mulaiScanner = () => {
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, async (txt) => {
         await window.stopScanner();
-        prosesAbsensiAsrama(txt);
+        prosesAbsensiOtomatis(txt); // Fungsi baru tanpa pendaftaran manual
     }).catch(e => {
         alert("Kamera error!");
         window.stopScanner();
@@ -67,65 +66,49 @@ window.stopScanner = async () => {
     scanSec.classList.add('hidden');
 };
 
-// --- 4. PROSES ABSENSI OTOMATIS ---
-window.prosesAbsensiAsrama = async (idKartu) => {
+// --- 4. PROSES ABSENSI OTOMATIS (LANGSUNG HADIR) ---
+window.prosesAbsensiOtomatis = async (isiBarcode) => {
     try {
-        const docRef = doc(db, "peserta_asrama", idKartu);
+        // Barcode isinya format: DESA|KELOMPOK|NOMOR (Contoh: WATES|BOJONG|1)
+        const part = isiBarcode.split('|');
+        if (part.length < 3) return alert("Barcode Tidak Valid!");
+
+        const desa = part[0];
+        const kelompok = part[1];
+        const nomor = part[2];
+        const idDoc = isiBarcode.replace(/\|/g, '_'); // Ganti | jadi _ untuk ID Firebase
+
+        const docRef = doc(db, "peserta_asrama", idDoc);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            const data = docSnap.data();
+            // Jika sudah ada data di database, update jam absennya
             await updateDoc(docRef, {
                 status_hadir: true,
                 waktu_absen: serverTimestamp()
             });
-            tampilkanSukses(data.nama);
         } else {
-            tampilkanFormRegistrasi(idKartu);
+            // JIKA DATA BELUM ADA: Otomatis daftarkan berdasarkan info di Barcode
+            await setDoc(docRef, {
+                nama: `${kelompok} ${nomor}`, // Nama otomatis: BOJONG 1
+                desa: desa,
+                kelompok: kelompok,
+                status_hadir: true,
+                waktu_absen: serverTimestamp()
+            });
         }
+        tampilkanSukses(`${kelompok} ${nomor}`);
     } catch (e) { alert("Error: " + e.message); }
 };
 
-// --- 5. REGISTRASI PESERTA BARU ---
-window.tampilkanFormRegistrasi = (idKartu) => {
-    const content = document.getElementById('pendaftar-section');
-    content.innerHTML = `
-        <div class="card">
-            <h3>Daftarkan Bapak Baru</h3>
-            <p>ID Kartu: <b>${idKartu}</b></p>
-            <input type="text" id="reg-nama-bapak" placeholder="Nama Lengkap...">
-            <select id="reg-desa-bapak">
-                <option value="">-- Pilih Desa --</option>
-                ${Object.keys(dataWilayah).map(d => `<option value="${d}">${d}</option>`).join('')}
-            </select>
-            <input type="text" id="reg-kelompok-bapak" placeholder="Kelompok (Cth: KLP 01)">
-            <button onclick="simpanBapakBaru('${idKartu}')" class="primary-btn">SIMPAN & ABSEN</button>
-            <button onclick="showDashboardAdmin()" style="background:#666;" class="primary-btn">BATAL</button>
-        </div>
-    `;
-};
-
-window.simpanBapakBaru = async (idKartu) => {
-    const nama = document.getElementById('reg-nama-bapak').value.toUpperCase();
-    const desa = document.getElementById('reg-desa-bapak').value;
-    const kelompok = document.getElementById('reg-kelompok-bapak').value.toUpperCase();
-
-    if(!nama || !desa || !kelompok) return alert("Data harus lengkap!");
-
-    await setDoc(doc(db, "peserta_asrama", idKartu), {
-        nama, desa, kelompok, status_hadir: true, waktu_absen: serverTimestamp()
-    });
-    tampilkanSukses(nama);
-};
-
-// --- 6. OVERLAY SUKSES ---
-function tampilkanSukses(nama) {
+// --- 5. OVERLAY SUKSES ---
+function tampilkanSukses(identitas) {
     const overlay = document.getElementById('success-overlay');
     overlay.style.display = 'flex';
     overlay.innerHTML = `
         <div class="celebration-wrap">
             <div class="text-top">ALHAMDULILLAH</div>
-            <div class="text-main">${nama}</div>
+            <div class="text-main">${identitas}</div>
             <p style="font-size:24px; font-weight:bold;">BERHASIL ABSEN!</p>
             <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
         </div>
@@ -141,7 +124,7 @@ function tampilkanSukses(nama) {
     }, 2500);
 }
 
-// --- 7. GENERATOR KARTU BARCODE ---
+// --- 6. GENERATOR KARTU (MENANAM DATA KE QR) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -180,7 +163,8 @@ window.render5Kartu = (desa, kelompok) => {
     container.innerHTML = ""; 
 
     for (let i = 1; i <= 5; i++) {
-        const idUnik = `${kelompok.replace(/\s/g, '')}_${i}`;
+        // FORMAT BARCODE: DESA|KELOMPOK|NOMOR
+        const isiBarcode = `${desa}|${kelompok}|${i}`;
         const cardId = `kartu-wrap-${i}`;
         
         const cardHtml = `
@@ -191,10 +175,10 @@ window.render5Kartu = (desa, kelompok) => {
                     KELOMPOK : ${kelompok}
                 </div>
                 <div id="qr-area-${i}" style="display:flex; justify-content:center; margin:15px 0;"></div>
-                <div style="font-size:10px; color:#999; margin-bottom:10px;">ID: ${idUnik}</div>
+                <div style="font-size:10px; color:#999; margin-bottom:10px;">NO PESERTA: ${i}</div>
                 <div class="qris-footer"><p>ASRAMA KULON PROGO</p></div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${idUnik}')" class="primary-btn" style="width:200px; margin-bottom:30px; background:#0056b3;">⬇️ DOWNLOAD GAMBAR</button>
+            <button onclick="downloadKartu('${cardId}', '${kelompok}_${i}')" class="primary-btn" style="width:200px; margin-bottom:30px; background:#0056b3;">⬇️ DOWNLOAD GAMBAR</button>
         `;
         
         const div = document.createElement('div');
@@ -202,7 +186,7 @@ window.render5Kartu = (desa, kelompok) => {
         container.appendChild(div);
 
         new QRCode(document.getElementById(`qr-area-${i}`), {
-            text: idUnik,
+            text: isiBarcode, // Menyimpan data Desa|Kelompok|Nomor
             width: 150,
             height: 150
         });
@@ -219,6 +203,6 @@ window.downloadKartu = (elementId, fileName) => {
     });
 };
 
-// Inisialisasi Aplikasi
+// Inisialisasi
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
