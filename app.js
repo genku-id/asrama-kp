@@ -202,6 +202,7 @@ window.downloadKartu = (elementId, fileName) => {
 };
 
 // --- 7. HALAMAN REKAP KEHADIRAN ---
+// --- 7. HALAMAN REKAP KEHADIRAN (TAMPILAN BARU) ---
 window.showHalamanRekap = async () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Memuat Data Rekap...</h3></div>`;
@@ -212,37 +213,35 @@ window.showHalamanRekap = async () => {
         
         let htmlRekap = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0; color:#0056b3;">Rekap Kehadiran</h3>
+                <h3 style="margin:0; color:#0056b3;">Laporan Kehadiran</h3>
                 <button onclick="showDashboardAdmin()" style="background:#666; color:white; border:none; padding:5px 12px; border-radius:8px; cursor:pointer;">X</button>
             </div>
-            <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse: collapse; font-size:12px; background:white;">
-                    <thead>
-                        <tr style="background:#0056b3; color:white;">
-                            <th style="padding:10px; border:1px solid #ddd;">IDENTITAS</th>
-                            <th style="padding:10px; border:1px solid #ddd;">DESA</th>
-                            <th style="padding:10px; border:1px solid #ddd;">JAM</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+            <div id="rekap-list-container">`;
 
         if (querySnapshot.empty) {
-            htmlRekap += `<tr><td colspan="3" style="text-align:center; padding:20px;">Belum ada data absen.</td></tr>`;
+            htmlRekap += `<div class="card" style="text-align:center;">Belum ada data absen hari ini.</div>`;
         } else {
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 const waktu = data.waktu_absen ? data.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
+                
+                // Tampilan List ala Card yang lebih rapi
                 htmlRekap += `
-                    <tr>
-                        <td style="padding:10px; border:1px solid #ddd;"><b>${data.nama}</b></td>
-                        <td style="padding:10px; border:1px solid #ddd;">${data.desa}</td>
-                        <td style="padding:10px; border:1px solid #ddd; text-align:center;">${waktu}</td>
-                    </tr>`;
+                    <div style="background:white; border-left: 5px solid #0056b3; padding:15px; border-radius:10px; margin-bottom:10px; box-shadow:0 2px 5px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:16px; font-weight:900; color:#333; text-transform:uppercase;">${data.nama}</div>
+                            <div style="font-size:12px; color:#666; margin-top:3px;">${data.desa} — ${data.kelompok}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:14px; font-weight:bold; color:#0056b3;">${waktu}</div>
+                            <div style="font-size:10px; color:#aaa;">HADIR</div>
+                        </div>
+                    </div>`;
             });
         }
 
-        htmlRekap += `</tbody></table></div>
-                      <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:20px;">KEMBALI</button>`;
+        htmlRekap += `</div>
+                      <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666; margin-top:20px;">KEMBALI KE SCANNER</button>`;
         
         content.innerHTML = htmlRekap;
     } catch (e) {
@@ -250,7 +249,6 @@ window.showHalamanRekap = async () => {
         showDashboardAdmin();
     }
 };
-
 // Inisialisasi
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
