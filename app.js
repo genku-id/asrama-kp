@@ -3,7 +3,6 @@ import {
     collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 1. Update nama jabatan sesuai instruksi (Formal & Tanpa Angka)
 const strukturOrganisasi = {
     "DAERAH": ["KEIMAMAN DAERAH", "WAKIL KEIMAMAN DAERAH", "MUBALLIGH DAERAH"],
     "DESA_JABATAN": ["KEIMAMAN DESA", "WAKIL KEIMAMAN DESA", "MUBALLIGH DESA"],
@@ -17,6 +16,7 @@ const strukturOrganisasi = {
 };
 
 let html5QrCode;
+let sedangProses = false; // KUNCI AGAR TIDAK DOUBLE SCAN
 
 // --- LOGIN ---
 window.showLoginPanitia = () => {
@@ -81,12 +81,14 @@ window.simpanSesiLaluScan = () => {
     mulaiScanner();
 };
 
-// --- SCANNER ---
+// --- SCANNER (KAMERA DEPAN & COOLDOWN) ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: 250 }, async (txt) => {
+        if (sedangProses) return; // JANGAN BACA JIKA SEDANG PROSES
+        sedangProses = true; 
         prosesAbsensiOtomatis(txt); 
     }).catch(e => { 
         alert("Kamera error!"); 
@@ -97,13 +99,10 @@ window.mulaiScanner = () => {
 window.stopScanner = async () => {
     const scanSec = document.getElementById('scanner-section');
     if (html5QrCode) { 
-        try { 
-            await html5QrCode.stop(); 
-        } catch (e) {
-            console.log("Kamera sudah mati");
-        } 
+        try { await html5QrCode.stop(); } catch (e) { console.log("Kamera sudah mati"); } 
     }
     scanSec.classList.add('hidden');
+    sedangProses = false;
 };
 
 // --- PROSES ABSENSI ---
@@ -112,7 +111,7 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
     const s = localStorage.getItem('activeSesi');
     try {
         const part = isiBarcode.split('|');
-        if (part.length < 3) return alert("Barcode Tidak Valid!");
+        if (part.length < 3) { sedangProses = false; return alert("Barcode Tidak Valid!"); }
         const [level, desa, identitas] = part;
         const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
         const docRef = doc(db, "absensi_asrama", idDoc);
@@ -125,54 +124,41 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
             sesi: s,
             waktu_absen: serverTimestamp()
         });
-        // Pastikan variabel desa dikirim dengan benar agar tidak undefined
         tampilkanSukses(identitas, desa, s);
-    } catch (e) { alert("Error: " + e.message); }
+    } catch (e) { alert("Error: " + e.message); sedangProses = false; }
 };
 
-// 2. Perbaikan Overlay (Menghilangkan Undefined & Merapikan Tampilan)
+// --- OVERLAY SUKSES (BERSIH & SEJAJAR) ---
 function tampilkanSukses(identitas, desa, sesi) {
     const overlay = document.getElementById('success-overlay');
     overlay.style.display = 'flex';
     
-    let textMain = "";
-    let subText = "";
-
-    const hapusAngka = (str) => str.replace(/\s\d+$/, '');
-
-    if (identitas.includes("Peserta")) {
-        // Kelompok Kiriman
-        textMain = identitas;
-        subText = `${desa} (${sesi})`;
-    } else if (identitas.includes("DAERAH")) {
-        // Pengurus Daerah
-        textMain = hapusAngka(identitas);
-        subText = `KULON PROGO (${sesi})`;
-    } else {
-        // Pengurus Desa
-        textMain = hapusAngka(identitas);
-        subText = `${desa} (${sesi})`;
-    }
-
+    // Ganti Angka 1 jadi . dan Angka 2 jadi ..
+    const namaBersih = identitas.replace(/\s1$/, ' .').replace(/\s2$/, ' ..').replace(/\sPeserta\s\.$/, ' Peserta .').replace(/\sPeserta\s\.\.$/, ' Peserta ..');
+    
     overlay.innerHTML = `
     <div class="celebration-wrap">
         <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-        <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase; margin-bottom:10px;">${textMain}</div>
-        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase;">${subText}</div>
+        <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase; margin-bottom:10px;">${namaBersih}</div>
+        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase;">${desa}</div>
         <p style="font-size:18px; margin-top:20px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:10px; color: white;">
             ABSEN ${sesi} BERHASIL!
         </p>
         <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
-    </div>
-`;
+    </div>`;
+
     const sound = document.getElementById('success-sound');
     if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
+
+    // Overlay hilang dan buka kunci scan setelah 3 detik
     setTimeout(() => { 
-        overlay.style.display = 'none';  }, 2500);
+        overlay.style.display = 'none';
+        sedangProses = false; 
+    }, 3000);
 }
 
-// --- GENERATOR KARTU ---
+// --- GENERATOR KARTU (GANTI ANGKA JADI TITIK) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -235,9 +221,8 @@ window.showHalamanBuatKartu = () => {
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
         const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
-       
-        const identitasBersih = level !== "KELOMPOK" ? identitas.replace(/\s\d+$/, '') : identitas;
-        const namaUnik = `${identitasBersih} ${labelPeserta}${i}`;
+        const tandaTitik = (i === 1) ? "." : "..";
+        const namaUnik = `${identitas} ${labelPeserta}${tandaTitik}`;
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
@@ -246,20 +231,19 @@ function render2Kartu(container, level, desa, identitas) {
             <div id="${cardId}" class="qris-container">
                 <div class="qris-header" style="background:#0056b3;"><h3>KARTU ASRAMA</h3></div>
                 <div class="qris-event-name">
-                        <span style="text-transform: uppercase; font-weight: bold;">${desa}</span><br>
+                    <span style="text-transform: uppercase; font-weight: bold;">${desa}</span><br>
                     <b style="font-size: 1.1em;">${namaUnik}</b>
                 </div>
                 <div id="qr-${cardId}" style="display:flex; justify-content:center; margin:15px 0;"></div>
                 <div class="qris-footer" style="border-top: 5px solid #0056b3;"><p>ASRAMA KULON PROGO</p></div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; background:#0056b3;">⬇️ DOWNLOAD</button>
-        `;
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; background:#0056b3;">⬇️ DOWNLOAD</button>`;
         container.appendChild(div);
         new QRCode(document.getElementById(`qr-${cardId}`), { text: isiBarcode, width: 150, height: 150 });
     }
 }
 
-// 3. Perbaikan Laporan (Sejajar, Se-warna, Ramping)
+// --- LAPORAN (TITIK & SEJAJAR) ---
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
@@ -296,6 +280,7 @@ window.showHalamanRekap = async () => {
         });
 
         const totalSesi = viewHari === 'all' ? 24 : 4;
+        const biruPenyekat = "#0056b3";
 
         let html = `
             <div style="background:#f4f7f6; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #ddd;">
@@ -320,9 +305,6 @@ window.showHalamanRekap = async () => {
                             </tr>
                         </thead>
                         <tbody>`;
-
-        // Penggunaan 1 warna penyekat (Biru)
-        const biruPenyekat = "#0056b3";
 
         html += renderPenyekatSticky("PENGURUS DAERAH", biruPenyekat, totalSesi, "white", "15px");
         dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
@@ -353,19 +335,14 @@ function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, 
 }
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
-    // Fungsi untuk menghapus angka di akhir secara otomatis agar laporan bersih
-    const hapusAngka = (str) => str.replace(/\s\d+$/, '');
-    let namaTampil = p.nama.includes("Peserta") ? p.nama : hapusAngka(p.nama);
-    
+    let namaTampil = p.nama.replace(/\s1$/, ' .').replace(/\s2$/, ' ..').replace(/\sPeserta\s1$/, ' Peserta .').replace(/\sPeserta\s2$/, ' Peserta ..');
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
     let prefix = isKelompok ? "- " : "";
     let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">${prefix}${namaTampil}</td>`;
-    
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
             const jam = matrix[p.id][`H${h}_${s}`];
-            // Render Sejajar: HADIR JAM
             rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
                 ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
             </td>`;
@@ -375,6 +352,7 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     return rowHtml;
 }
 
+// --- FUNGSI DOWNLOAD & NAVIGASI ---
 window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
