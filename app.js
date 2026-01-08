@@ -1,11 +1,12 @@
 import { db } from './firebase-config.js';
 import { 
-    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where 
+    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// Update nama jabatan sesuai instruksi (Formal & Tanpa Angka)
 const strukturOrganisasi = {
-    "DAERAH": ["KYAI DAE", "WAKIL KYAI DAE", "MUBALIGH DAE"],
-    "DESA_JABATAN": ["KYAI DESA", "MUBALIGH DESA"],
+    "DAERAH": ["KEIMAMAN DAERAH", "WAKIL KEIMAMAN DAERAH", "MUBALIGH DAERAH"],
+    "DESA_JABATAN": ["KEIMAMAN DESA", "MUBALIGH DESA"],
     "WILAYAH": {
         "WATES": ["KREMBANGAN", "BOJONG", "GIRIPENI 1", "GIRIPENI 2", "HARGOWILIS", "TRIHARJO"],
         "PENGASIH": ["MARGOSARI", "SENDANGSARI", "BANJARHARJO", "NANGGULAN", "GIRINYONO", "JATIMULYO", "SERUT"],
@@ -33,7 +34,7 @@ window.showLoginPanitia = () => {
     };
 };
 
-// --- 2. DASHBOARD DENGAN FITUR KUNCI ---
+// --- 2. DASHBOARD ---
 window.showDashboardAdmin = () => {
     const curHari = localStorage.getItem('activeHari') || "1";
     const curSesi = localStorage.getItem('activeSesi') || "SUBUH";
@@ -116,21 +117,37 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
             sesi: s,
             waktu_absen: serverTimestamp()
         });
-        tampilkanSukses(`${identitas} ${desa} (${s})`);
+        tampilkanSukses(identitas, desa);
     } catch (e) { alert("Error: " + e.message); }
 };
 
 function tampilkanSukses(identitas, desa) {
-    // Hapus angka 1 atau 2 di akhir jika bukan kategori kelompok
-    const namaBersih = identitas.replace(/\s\d+$/, ''); 
     const overlay = document.getElementById('success-overlay');
-    
     overlay.style.display = 'flex';
+    
+    // Logika Overlay rapi sesuai instruksi
+    let textMain = "";
+    let subText = "";
+
+    if (identitas.includes("Peserta")) {
+        // Kelompok
+        textMain = identitas;
+        subText = desa;
+    } else if (identitas.includes("DAERAH")) {
+        // Pengurus Daerah (Identitas sudah berisi jabatan)
+        textMain = identitas.replace(/\s\d+$/, '');
+        subText = "KULON PROGO";
+    } else {
+        // Pengurus Desa
+        textMain = `${identitas.replace(/\s\d+$/, '')}`;
+        subText = desa;
+    }
+
     overlay.innerHTML = `
         <div class="celebration-wrap">
             <div class="text-top">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-            <div class="text-main" style="font-size:2.2rem; line-height:1.2;">${namaBersih}</div>
-            <div style="font-size:1.5rem; font-weight:bold; color:#FFD700; margin-top:5px; text-transform:uppercase;">${desa !== 'DAERAH' ? desa : ''}</div>
+            <div class="text-main" style="font-size:2.2rem; line-height:1.2; text-transform:uppercase;">${textMain}</div>
+            <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; margin-top:5px; text-transform:uppercase;">${subText}</div>
             <p style="font-size:18px; margin-top:15px; font-weight:bold;">ABSEN BERHASIL!</p>
             <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
         </div>
@@ -141,7 +158,7 @@ function tampilkanSukses(identitas, desa) {
     setTimeout(() => { overlay.style.display = 'none'; showDashboardAdmin(); }, 2500);
 }
 
-// --- 5. GENERATOR KARTU (2 KARTU) ---
+// --- 5. GENERATOR KARTU ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -200,6 +217,7 @@ window.showHalamanBuatKartu = () => {
         }
     };
 };
+
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
         const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
@@ -225,6 +243,7 @@ function render2Kartu(container, level, desa, identitas) {
         new QRCode(document.getElementById(`qr-${cardId}`), { text: isiBarcode, width: 150, height: 150 });
     }
 }
+
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
     html2canvas(target).then(canvas => {
@@ -236,27 +255,19 @@ window.downloadKartu = (elementId, fileName) => {
 };
 
 // --- 6. REKAP ---
-// --- 6. REKAP CHECKLIST MATRIX (PENYESUAIAN FINAL) ---
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Menyusun Laporan...</h3></div>`;
     
     try {
-        let q;
-        if (viewHari === "all") {
-            q = query(collection(db, "absensi_asrama"), orderBy("waktu_absen", "asc"));
-        } else {
-            q = query(collection(db, "absensi_asrama"), where("hari", "==", viewHari.toString()));
-        }
+        let q = viewHari === "all" 
+            ? query(collection(db, "absensi_asrama"), orderBy("waktu_absen", "asc"))
+            : query(collection(db, "absensi_asrama"), where("hari", "==", viewHari.toString()));
         
         const snap = await getDocs(q);
         let matrix = {}; 
-        let dataRekap = { 
-            DAERAH: [], 
-            PENGURUS_DESA: {}, 
-            KIRIMAN_KELOMPOK: {} 
-        };
+        let dataRekap = { DAERAH: [], PENGURUS_DESA: {}, KIRIMAN_KELOMPOK: {} };
 
         snap.forEach(doc => {
             const d = doc.data();
@@ -267,10 +278,8 @@ window.showHalamanRekap = async () => {
             if (!matrix[idPeserta]) {
                 matrix[idPeserta] = {};
                 const info = { id: idPeserta, nama: d.nama, desa: d.desa, level: d.level };
-
-                if (d.level === "DAERAH") {
-                    dataRekap.DAERAH.push(info);
-                } else if (d.level === "DESA") {
+                if (d.level === "DAERAH") dataRekap.DAERAH.push(info);
+                else if (d.level === "DESA") {
                     if (!dataRekap.PENGURUS_DESA[d.desa]) dataRekap.PENGURUS_DESA[d.desa] = [];
                     dataRekap.PENGURUS_DESA[d.desa].push(info);
                 } else {
@@ -296,10 +305,7 @@ window.showHalamanRekap = async () => {
 
             <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
                 <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '1000px'}; font-family: sans-serif;">
-                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; font-size:24px;">
-                        REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}
-                    </h2>
-                    
+                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; font-size:24px;">REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}</h2>
                     <table style="width:100%; border-collapse: collapse; font-size:14px; border: 2px solid #ddd;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
@@ -307,38 +313,24 @@ window.showHalamanRekap = async () => {
                                 ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px; font-size:16px;">HARI ${h}</th>`).join('')}
                             </tr>
                             <tr style="background:#007bff; color:white;">
-                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">SUBUH</th>
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">PAGI</th>
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">SIANG</th>
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:12px;">MALAM</th>
-                                `).join('')}
+                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th style="border:1px solid #ddd; padding:8px; font-size:12px;">SUBUH</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">PAGI</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">SIANG</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">MALAM</th>`).join('')}
                             </tr>
                         </thead>
                         <tbody>`;
 
-        // 1. RENDER DAERAH
         html += renderPenyekatSticky("PENGURUS DAERAH", "#0056b3", totalSesi, "white", "15px");
-        dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
-            html += renderBarisMatriks(p, matrix, viewHari);
-        });
+        dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
 
-        // 2. RENDER PENGURUS DESA
         html += renderPenyekatSticky("PENGURUS DESA", "#0056b3", totalSesi, "white", "15px");
         Object.keys(dataRekap.PENGURUS_DESA).sort().forEach(desa => {
-            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "10px");
-            dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
-                html += renderBarisMatriks(p, matrix, viewHari);
-            });
+            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "13px");
+            dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
         });
 
-        // 3. RENDER KIRIMAN KELOMPOK
         html += renderPenyekatSticky("KIRIMAN KELOMPOK :", "#0056b3", totalSesi, "white", "15px");
         Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
-            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "10px");
-            dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
-                html += renderBarisMatriks(p, matrix, viewHari, true);
-            });
+            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, "#0056b3", "20px", "13px");
+            dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari, true));
         });
 
         html += `</tbody></table></div></div>
@@ -346,60 +338,40 @@ window.showHalamanRekap = async () => {
                     <button onclick="downloadLaporan()" class="primary-btn" style="background:#0056b3; padding: 15px; font-size: 16px;">📥 DOWNLOAD GAMBAR LAPORAN</button>
                     <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
                  </div>`;
-        
         content.innerHTML = html;
     } catch (e) { alert(e.message); showDashboardAdmin(); }
 };
 
-// Fungsi Helper Penyekat - Disesuaikan agar lebih ramping & satu warna
 function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, fontSize = "14px") {
-    return `<tr>
-        <td style="padding: 6px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; font-size:${fontSize};">
-            ${label}
-        </td>
-        <td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td>
-    </tr>`;
+    return `<tr><td style="padding: 10px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; font-size:${fontSize}; text-transform:uppercase;">${label}</td><td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td></tr>`;
 }
 
-// Fungsi Helper Baris Data - Tulisan Hadir Sejajar & Lebih Besar
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     let namaTampil = p.nama.includes("Peserta") ? p.nama : p.nama.replace(/\s\d+$/, '');
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
     let prefix = isKelompok ? "- " : "";
-
-    let rowHtml = `<tr>
-        <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">
-            ${prefix}${namaTampil}
-        </td>`;
-    
+    let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">${prefix}${namaTampil}</td>`;
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
             const jam = matrix[p.id][`H${h}_${s}`];
-            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
-                ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
-            </td>`;
+            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;"><span style="color:#28a745; font-weight:bold; font-size:13px;">${jam ? 'HADIR ' + jam : '-'}</span></td>`;
         });
     });
     rowHtml += `</tr>`;
     return rowHtml;
 }
 
-window.setViewHari = (num) => {
-    localStorage.setItem('viewHari', num);
-    showHalamanRekap();
-};
-
+window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
     html2canvas(target, { scale: 2 }).then(canvas => {
         const link = document.createElement('a');
-        link.download = `Laporan_H${localStorage.getItem('activeHari')}_${localStorage.getItem('activeSesi')}.png`;
+        link.download = `Laporan_Asrama.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
     });
 };
 
-// Inisialisasi
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
