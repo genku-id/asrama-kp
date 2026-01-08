@@ -221,8 +221,7 @@ window.showHalamanBuatKartu = () => {
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
         const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
-        const tandaTitik = (i === 1) ? "." : "..";
-        const namaUnik = `${identitas} ${labelPeserta}${tandaTitik}`;
+        const namaUnik = `${identitas} ${labelPeserta}${i}`;
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
