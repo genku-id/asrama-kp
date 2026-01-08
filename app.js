@@ -235,27 +235,31 @@ window.downloadKartu = (elementId, fileName) => {
     });
 };
 
-// --- 6. REKAP TERORGANISIR  ---
-// --- 6. REKAP CHECKLIST MATRIX (TUMBUH 24 KOLOM) ---
+// --- 6. REKAP CHECKLIST MATRIX (HIRARKI DAERAH, DESA, & KIRIMAN) ---
 window.showHalamanRekap = async () => {
-    // Default ke tampilan hari aktif, atau "all" jika ingin melihat semua
+    // Mengambil pilihan tampilan (H1-H6 atau 'all')
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
-    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Menyusun Tabel Checklist...</h3></div>`;
+    content.innerHTML = `<div style="text-align:center; padding:20px;"><h3>Menyusun Laporan Berdasarkan Kiriman...</h3></div>`;
     
     try {
         let q;
         if (viewHari === "all") {
-            // Ambil semua data tanpa filter hari
             q = query(collection(db, "absensi_asrama"), orderBy("waktu_absen", "asc"));
         } else {
-            // Filter per hari yang dipilih
             q = query(collection(db, "absensi_asrama"), where("hari", "==", viewHari.toString()));
         }
         
         const snap = await getDocs(q);
+        
+        // Objek Matrix Kehadiran
         let matrix = {}; 
-        let pesertaList = { DAERAH: [], DESA: [], KELOMPOK: [] };
+        // Objek untuk menampung data yang sudah terstruktur
+        let dataRekap = { 
+            DAERAH: [], 
+            PENGURUS_DESA: {}, // { "WATES": [], "PENGASIH": [] }
+            KIRIMAN_KELOMPOK: {} // { "WATES": [], "PENGASIH": [] }
+        };
 
         snap.forEach(doc => {
             const d = doc.data();
@@ -265,15 +269,23 @@ window.showHalamanRekap = async () => {
 
             if (!matrix[idPeserta]) {
                 matrix[idPeserta] = {};
-                pesertaList[d.level].push({ id: idPeserta, nama: d.nama, desa: d.desa, level: d.level });
+                const info = { id: idPeserta, nama: d.nama, desa: d.desa, level: d.level };
+
+                if (d.level === "DAERAH") {
+                    dataRekap.DAERAH.push(info);
+                } else if (d.level === "DESA") {
+                    if (!dataRekap.PENGURUS_DESA[d.desa]) dataRekap.PENGURUS_DESA[d.desa] = [];
+                    dataRekap.PENGURUS_DESA[d.desa].push(info);
+                } else {
+                    if (!dataRekap.KIRIMAN_KELOMPOK[d.desa]) dataRekap.KIRIMAN_KELOMPOK[d.desa] = [];
+                    dataRekap.KIRIMAN_KELOMPOK[d.desa].push(info);
+                }
             }
             matrix[idPeserta][sesiKey] = jam;
         });
 
-        // Urutkan Nama
-        pesertaList.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama));
-        pesertaList.DESA.sort((a,b) => a.desa.localeCompare(b.desa));
-        pesertaList.KELOMPOK.sort((a,b) => a.desa.localeCompare(b.desa) || a.nama.localeCompare(b.nama));
+        // Pengurutan Nama Daerah
+        dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama));
 
         let html = `
             <div style="background:#f4f7f6; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #ddd;">
@@ -287,19 +299,18 @@ window.showHalamanRekap = async () => {
             </div>
 
             <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
-                <div id="print-rekap-area" style="background:white; padding:15px; min-width:${viewHari === 'all' ? '1800px' : '800px'};">
-                    <h2 style="text-align:center; color:#0056b3; margin-bottom:15px; border-bottom:2px solid #0056b3; padding-bottom:10px; text-transform:uppercase;">
-                        REKAP CHECKLIST ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}
+                <div id="print-rekap-area" style="background:white; padding:15px; min-width:${viewHari === 'all' ? '1800px' : '850px'}; font-family: sans-serif;">
+                    <h2 style="text-align:center; color:#0056b3; margin-bottom:15px; border-bottom:2px solid #0056b3; padding-bottom:10px;">
+                        REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}
                     </h2>
                     
                     <table style="width:100%; border-collapse: collapse; font-size:10px;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
-                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:left; position:sticky; left:0; background:#0056b3; z-index:10;">NAMA PESERTA</th>
-                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:center; position:sticky; left:120px; background:#0056b3; z-index:9;">DESA</th>
+                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:left; position:sticky; left:0; background:#0056b3; z-index:10; width:250px;">NAMA PESERTA / JABATAN</th>
                                 ${viewHari === 'all' 
-                                    ? [1,2,3,4,5,6].map(h => `<th colspan="4" style="border:1px solid #ddd; padding:5px;">HARI ${h}</th>`).join('')
-                                    : `<th colspan="4" style="border:1px solid #ddd; padding:5px;">HARI ${viewHari}</th>`
+                                    ? [1,2,3,4,5,6].map(h => `<th colspan="4" style="border:1px solid #ddd; padding:5px;">HARI ${h}</th>`).join('') 
+                                    : `<th colspan="4" style="border:1px solid #ddd; padding:5px;">SESI</th>`
                                 }
                             </tr>
                             <tr style="background:#007bff; color:white;">
@@ -313,24 +324,28 @@ window.showHalamanRekap = async () => {
                         </thead>
                         <tbody>`;
 
-        const semuaPeserta = [...pesertaList.DAERAH, ...pesertaList.DESA, ...pesertaList.KELOMPOK];
+        // --- 1. RENDER DAERAH ---
+        html += `<tr style="background:#333; color:white;"><td colspan="30" style="padding:8px; font-weight:bold; border:1px solid #ddd;">PENGURUS DAERAH</td></tr>`;
+        dataRekap.DAERAH.forEach(p => {
+            html += renderBarisMatriks(p, matrix, viewHari);
+        });
 
-        semuaPeserta.forEach(p => {
-            let namaTampil = p.nama.includes("Peserta") ? p.nama : p.nama.replace(/\s\d+$/, '');
-            html += `<tr>
-                <td style="padding:8px; border:1px solid #ddd; position:sticky; left:0; background:#f9f9f9; z-index:5; font-weight:bold; text-transform:uppercase; white-space:nowrap;">${namaTampil}</td>
-                <td style="padding:8px; border:1px solid #ddd; position:sticky; left:120px; background:#f9f9f9; z-index:4; text-align:center; font-weight:bold;">${p.desa}</td>`;
-                
-                const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
-                hariLoop.forEach(h => {
-                    ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
-                        const jam = matrix[p.id][`H${h}_${s}`];
-                        html += `<td style="padding:4px; border:1px solid #ddd; text-align:center; background:${jam ? '#e7f3ff' : 'transparent'};">
-                            ${jam ? `<span style="color:#0056b3; font-weight:bold; font-size:7px;">HADIR<br>${jam}</span>` : '-'}
-                        </td>`;
-                    });
-                });
-            html += `</tr>`;
+        // --- 2. RENDER PENGURUS DESA ---
+        html += `<tr style="background:#555; color:white;"><td colspan="30" style="padding:8px; font-weight:bold; border:1px solid #ddd;">PENGURUS DESA</td></tr>`;
+        Object.keys(dataRekap.PENGURUS_DESA).sort().forEach(desa => {
+            html += `<tr style="background:#f0f4f8;"><td colspan="30" style="padding:5px 10px; font-weight:bold; color:#0056b3; border:1px solid #ddd;">DESA ${desa}</td></tr>`;
+            dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
+                html += renderBarisMatriks(p, matrix, viewHari);
+            });
+        });
+
+        // --- 3. RENDER KIRIMAN KELOMPOK ---
+        html += `<tr style="background:#0056b3; color:white;"><td colspan="30" style="padding:8px; font-weight:bold; border:1px solid #ddd;">KIRIMAN KELOMPOK :</td></tr>`;
+        Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
+            html += `<tr style="background:#eef6ff;"><td colspan="30" style="padding:5px 10px; font-weight:bold; color:#0056b3; border:1px solid #ddd;">KIRIMAN : ${desa}</td></tr>`;
+            dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => {
+                html += renderBarisMatriks(p, matrix, viewHari, true); // True untuk indentasi
+            });
         });
 
         html += `</tbody></table></div></div>
@@ -343,6 +358,31 @@ window.showHalamanRekap = async () => {
     } catch (e) { alert(e.message); showDashboardAdmin(); }
 };
 
+// Fungsi Helper untuk render Baris Tabel
+function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
+    let namaTampil = p.nama.includes("Peserta") ? p.nama : p.nama.replace(/\s\d+$/, '');
+    let styleIndent = isKelompok ? "padding-left:30px;" : "padding-left:10px;";
+    let prefix = isKelompok ? "- " : "";
+
+    let rowHtml = `<tr>
+        <td style="padding:8px; border:1px solid #ddd; position:sticky; left:0; background:#fff; z-index:5; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent}">
+            ${prefix}${namaTampil}
+        </td>`;
+    
+    const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
+    hariLoop.forEach(h => {
+        ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
+            const jam = matrix[p.id][`H${h}_${s}`];
+            rowHtml += `<td style="padding:4px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'};">
+                ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:7px;">HADIR<br>${jam}</span>` : '-'}
+            </td>`;
+        });
+    });
+    rowHtml += `</tr>`;
+    return rowHtml;
+}
+
+// Fungsi bantu navigasi filter
 window.setViewHari = (num) => {
     localStorage.setItem('viewHari', num);
     showHalamanRekap();
