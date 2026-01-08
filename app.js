@@ -134,7 +134,7 @@ function tampilkanSukses(identitas, desa, sesi) {
     overlay.style.display = 'flex';
     
     // Ganti Angka 1 jadi . dan Angka 2 jadi ..
-    const namaBersih = identitas.replace(/\s1$/, ' .').replace(/\s2$/, ' ..').replace(/\sPeserta\s\.$/, ' Peserta .').replace(/\sPeserta\s\.\.$/, ' Peserta ..');
+   const namaBersih = identitas.replace(/\s\d+$/, '');
     
     overlay.innerHTML = `
     <div class="celebration-wrap">
@@ -334,7 +334,7 @@ function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, 
 }
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
-    let namaTampil = p.nama.replace(/\s1$/, ' .').replace(/\s2$/, ' ..').replace(/\sPeserta\s1$/, ' Peserta .').replace(/\sPeserta\s2$/, ' Peserta ..');
+    let namaTampil = p.nama.replace(/\s\d+$/, '');
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
     let prefix = isKelompok ? "- " : "";
     let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">${prefix}${namaTampil}</td>`;
