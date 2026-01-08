@@ -33,7 +33,7 @@ window.showDashboardAdmin = () => {
             <h1 style="color:#0056b3; margin-bottom:5px;">MODE SCANNER</h1>
             <p style="font-size:14px; color:#666;">Silahkan scan kartu peserta</p>
         </div>
-        
+        <button onclick="showHalamanBuatKartu()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📇 BUAT KARTU BARCODE</button>
         <button onclick='mulaiScanner()' class="scan-btn" style="height:120px; font-size:22px;">📸 SCAN SEKARANG</button>
     `;
 };
@@ -141,3 +141,81 @@ function tampilkanSukses(nama) {
 // Inisialisasi
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
+
+window.showHalamanBuatKartu = () => {
+    const content = document.getElementById('pendaftar-section');
+    content.innerHTML = `
+        <div class="card">
+            <h3 style="color:#0056b3;">Generator Kartu Asrama</h3>
+            <select id="select-desa-kartu">
+                <option value="">-- Pilih Desa --</option>
+                ${Object.keys(dataWilayah).map(d => `<option value="${d}">${d}</option>`).join('')}
+            </select>
+            <select id="select-klp-kartu" disabled>
+                <option value="">-- Pilih Kelompok --</option>
+            </select>
+            <button id="btn-generate-5" class="primary-btn" style="background:#28a745;">BUAT 5 KARTU SEKARANG</button>
+            <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
+        </div>
+        <div id="container-kartu-hasil" style="margin-top:20px; display:flex; flex-direction:column; align-items:center; gap:20px;"></div>
+    `;
+
+    const dSel = document.getElementById('select-desa-kartu');
+    const kSel = document.getElementById('select-klp-kartu');
+
+    dSel.onchange = () => {
+        const kls = dataWilayah[dSel.value] || [];
+        kSel.innerHTML = '<option value="">Pilih Kelompok</option>' + kls.map(k => `<option value="${k}">${k}</option>`).join('');
+        kSel.disabled = false;
+    };
+
+    document.getElementById('btn-generate-5').onclick = () => {
+        if(!dSel.value || !kSel.value) return alert("Pilih Desa & Kelompok!");
+        render5Kartu(dSel.value, kSel.value);
+    };
+};
+
+window.render5Kartu = (desa, kelompok) => {
+    const container = document.getElementById('container-kartu-hasil');
+    container.innerHTML = ""; // Bersihkan tampilan sebelumnya
+
+    for (let i = 1; i <= 5; i++) {
+        const idUnik = `${kelompok.replace(/\s/g, '')}_${i}`;
+        const cardId = `kartu-wrap-${i}`;
+        
+        const cardHtml = `
+            <div id="${cardId}" class="qris-container" style="margin-bottom:10px;">
+                <div class="qris-header"><h3>KARTU ASRAMA</h3></div>
+                <div class="qris-event-name" style="font-size:14px; margin-top:10px;">
+                    DESA : ${desa}<br>
+                    KELOMPOK : ${kelompok}
+                </div>
+                <div id="qr-area-${i}" style="display:flex; justify-content:center; margin:15px 0;"></div>
+                <div style="font-size:10px; color:#999; margin-bottom:10px;">ID: ${idUnik}</div>
+                <div class="qris-footer"><p>ASRAMA KULON PROGO</p></div>
+            </div>
+            <button onclick="downloadKartu('${cardId}', '${idUnik}')" class="primary-btn" style="width:200px; margin-bottom:30px; background:#0056b3;">⬇️ DOWNLOAD GAMBAR</button>
+        `;
+        
+        const div = document.createElement('div');
+        div.innerHTML = cardHtml;
+        container.appendChild(div);
+
+        // Render Barcode
+        new QRCode(document.getElementById(`qr-area-${i}`), {
+            text: idUnik,
+            width: 150,
+            height: 150
+        });
+    }
+};
+
+window.downloadKartu = (elementId, fileName) => {
+    const target = document.getElementById(elementId);
+    html2canvas(target).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Kartu_${fileName}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+};
