@@ -225,29 +225,28 @@ function render2Kartu(container, level, desa, identitas) {
         
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px;";
+        div.style = "text-align:center; padding:15px; margin-bottom: 20px;";
         
         div.innerHTML = `
-            <div id="${cardId}" class="qris-container">
+            <div id="${cardId}" class="qris-container" style="background: transparent !important;">
                 <div class="card-content-overlay">
                     <div class="label-peserta">PESERTA ASRAMA</div>
                     <div class="nama-jabatan">${namaTampil}</div>
-                    <div class="qr-zone" style="background:#ffffff !important; padding:10px; border-radius:10px;">
+                    <div class="qr-zone" style="background: transparent !important;">
                         <div id="qr-${cardId}"></div>
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#0056b3; margin-top:10px;">⬇️ DOWNLOAD PNG</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#1B4332; margin-top:10px;">⬇️ DOWNLOAD PNG HIJAU</button>
         `;
         container.appendChild(div);
 
-        // Render QR Code dengan opsi warna tegas agar tidak putih polos
         new QRCode(document.getElementById(`qr-${cardId}`), { 
             text: isiBarcode, 
-            width: 150, 
-            height: 150,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
+            width: 160, 
+            height: 160,
+            colorDark : "#1B4332", // Barcode Hijau Tua
+            colorLight : "rgba(255,255,255,0)", // Transparan Total
             correctLevel : QRCode.CorrectLevel.H
         });
     }
