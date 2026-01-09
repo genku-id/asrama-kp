@@ -119,45 +119,53 @@ input, select {
 .qris-container {
     width: 6.8cm;
     height: 10cm;
-    background-image: url('KARTU ASRAMA.jpg'); /* Pastikan nama file gambarmu benar */
+    background-image: url('KARTU ASRAMA.jpg'); 
     background-size: 100% 100%;
     background-repeat: no-repeat;
     position: relative;
     display: block;
     margin: 0 auto;
-    /* Menghilangkan border biru lama */
     border: none !important;
     overflow: hidden;
 }
 
-/* Kotak Konten yang akan kita pas kan ke tengah kotak putih */
+/* Kotak Konten dinaikkan agar tidak longgar di atas */
 .card-content-overlay {
     position: absolute;
-    top: 65%; /* Atur persentase ini untuk naik/turunkan konten ke tengah kotak putih */
+    top: 45%; /* Diubah dari 65% ke 45% agar lebih naik ke atas */
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 90%;
+    width: 95%;
     text-align: center;
     color: #000;
 }
 
 .label-peserta {
-    font-size: 12px;
+    display: inline-block;
+    background: #0056b3; /* Warna biru asrama */
+    color: white;
+    padding: 4px 15px;
+    border-radius: 20px;
+    font-size: 14px; /* Digedein */
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .nama-jabatan {
-    font-size: 16px;
+    font-size: 18px; /* Digedein */
     font-weight: 900;
     margin-bottom: 15px;
     text-transform: uppercase;
     line-height: 1.2;
+    color: #000;
 }
 
 .qr-zone {
     display: inline-block;
     background: white;
-    padding: 5px;
-    border-radius: 4px;
+    padding: 8px; /* Lebih lebar sedikit */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
