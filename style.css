@@ -157,7 +157,7 @@ input, select {
 
 .qr-zone {
     display: inline-block;
-    background: white; /* Barcode tetap harus ada background putih dikit biar bisa di-scan */
+    background: #ffffff !important; /* Paksa putih solid di area barcode */
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 5px;
 }
