@@ -16,7 +16,7 @@ const strukturOrganisasi = {
 };
 
 let html5QrCode;
-let sedangProses = false; // KUNCI AGAR TIDAK DOUBLE SCAN
+let sedangProses = false; 
 
 // --- LOGIN ---
 window.showLoginPanitia = () => {
@@ -81,13 +81,13 @@ window.simpanSesiLaluScan = () => {
     mulaiScanner();
 };
 
-// --- SCANNER (KAMERA DEPAN & COOLDOWN) ---
+// --- SCANNER (KAMERA DEPAN) ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: 250 }, async (txt) => {
-        if (sedangProses) return; // JANGAN BACA JIKA SEDANG PROSES
+        if (sedangProses) return; 
         sedangProses = true; 
         prosesAbsensiOtomatis(txt); 
     }).catch(e => { 
@@ -128,30 +128,33 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
     } catch (e) { alert("Error: " + e.message); sedangProses = false; }
 };
 
-// --- OVERLAY SUKSES (BERSIH & SEJAJAR) ---
+// --- OVERLAY FULLSCREEN (MENUTUPI KAMERA) ---
 function tampilkanSukses(identitas, desa, sesi) {
     const overlay = document.getElementById('success-overlay');
     
-    // Sembunyikan angka untuk tampilan layar
+    // Sembunyikan angka di overlay
     const namaBersih = identitas.replace(/\s\d+$/, '');
 
-    // PAKSA FULL LAYAR & Z-INDEX TINGGI
+    // PAKSA OVERLAY DI DEPAN KAMERA (FULL LAYAR)
     overlay.style.position = 'fixed';
     overlay.style.top = '0';
     overlay.style.left = '0';
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
-    overlay.style.zIndex = '99999'; // Angka dewa agar di depan kamera
+    overlay.style.zIndex = '99999'; 
+    overlay.style.backgroundColor = 'rgba(0, 86, 179, 1)'; // Biru solid
     overlay.style.display = 'flex';
-    overlay.style.backgroundColor = 'rgba(0, 86, 179, 0.95)'; // Biru solid agar kamera tertutup
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
 
     overlay.innerHTML = `
-    <div class="celebration-wrap" style="text-align:center; width:100%; padding:20px;">
-        <div class="text-top" style="color:white; font-size:1.2rem;">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-        <div class="text-main" style="font-size:2.5rem; color:white; font-weight:bold; text-transform:uppercase; margin:20px 0;">${namaBersih}</div>
-        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase; margin-bottom:20px;">${desa}</div>
+    <div class="celebration-wrap" style="text-align:center; width:100%; padding:20px; color: white;">
+        <div style="font-size:1.2rem; margin-bottom: 20px;">Alhamdulillah Jazaa Kumullahu Koiroo</div>
+        <div style="font-size:2.5rem; font-weight:bold; text-transform:uppercase; margin-bottom:10px; line-height: 1.2;">${namaBersih}</div>
+        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase; margin-bottom:30px;">${desa}</div>
         
-        <div style="font-size:22px; font-weight:bold; color: white; border-top: 2px solid rgba(255,255,255,0.3); padding-top:20px;">
+        <div style="font-size:22px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:20px;">
             ABSEN ${sesi} BERHASIL!
         </div>
         
@@ -168,7 +171,7 @@ function tampilkanSukses(identitas, desa, sesi) {
     }, 3000);
 }
 
-// --- GENERATOR KARTU (GANTI ANGKA JADI TITIK) ---
+// --- GENERATOR KARTU (PAKAI ANGKA) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
@@ -231,7 +234,7 @@ window.showHalamanBuatKartu = () => {
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
         const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
-        const namaUnik = `${identitas} ${labelPeserta}${i}`;
+        const namaUnik = `${identitas} ${labelPeserta}${i}`; // PAKAI ANGKA LAGI DI KARTU
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
@@ -252,7 +255,7 @@ function render2Kartu(container, level, desa, identitas) {
     }
 }
 
-// --- LAPORAN (TITIK & SEJAJAR) ---
+// --- LAPORAN (ANGKA DIHAPUS) ---
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
@@ -296,7 +299,7 @@ window.showHalamanRekap = async () => {
                 <p style="margin:0 0 8px 0; font-weight:bold; font-size:14px; color:#0056b3;">PILIH HARI:</p>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     ${[1,2,3,4,5,6].map(num => `<button onclick="setViewHari(${num})" style="flex:1; min-width:50px; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari == num ? '#0056b3' : '#ccc'}; color:white;">H${num}</button>`).join('')}
-                    <button onclick="setViewHari('all')" style="flex:2; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI (24 KOLOM)</button>
+                    <button onclick="setViewHari('all')" style="flex:2; padding:8px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI (24 KOLOM)</button>
                 </div>
             </div>
 
@@ -344,7 +347,9 @@ function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, 
 }
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
-    let namaTampil = p.nama.replace(/\s\d+$/, '');
+    const hapusAngka = (str) => str.replace(/\s\d+$/, '');
+    let namaTampil = p.nama.includes("Peserta") ? p.nama : hapusAngka(p.nama);
+    
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
     let prefix = isKelompok ? "- " : "";
     let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">${prefix}${namaTampil}</td>`;
