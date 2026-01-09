@@ -63,6 +63,25 @@ window.showDashboardAdmin = () => {
     `;
 };
 
+// --- FUNGSI TOMBOL DASHBOARD (PERBAIKAN) ---
+window.toggleLock = () => {
+    const isLocked = localStorage.getItem('sessionLocked') === 'true';
+    if (!isLocked) {
+        localStorage.setItem('activeHari', document.getElementById('set-hari').value);
+        localStorage.setItem('activeSesi', document.getElementById('set-sesi').value);
+    }
+    localStorage.setItem('sessionLocked', !isLocked);
+    showDashboardAdmin();
+};
+
+window.simpanSesiLaluScan = () => {
+    if (localStorage.getItem('sessionLocked') !== 'true') {
+        localStorage.setItem('activeHari', document.getElementById('set-hari').value);
+        localStorage.setItem('activeSesi', document.getElementById('set-sesi').value);
+    }
+    mulaiScanner();
+};
+
 // --- SCANNER ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
@@ -111,7 +130,7 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
 };
 
 // --- OVERLAY SUKSES ---
-function tampilkanSukses(identitas, desa, sesi) {
+window.tampilkanSukses = (identitas, desa, sesi) => {
     const overlay = document.getElementById('success-overlay');
     const readerElem = document.getElementById('reader'); 
     const namaBersih = identitas.replace(/\s\d+$/, '');
@@ -158,12 +177,12 @@ function tampilkanSukses(identitas, desa, sesi) {
     }, 3000);
 }
 
-// --- GENERATOR KARTU (PNG TRANSPARAN UNTUK COREL) ---
+// --- GENERATOR KARTU (KEMBALI KE HITAM PUTIH) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
         <div class="card">
-            <h3>Generator Kartu (Transparan)</h3>
+            <h3>Generator Kartu (Hitam Putih Transparan)</h3>
             <select id="select-kategori-kartu">
                 <option value="">-- Pilih Kategori --</option>
                 <option value="DAERAH">PENGURUS DAERAH</option>
@@ -225,19 +244,19 @@ function render2Kartu(container, level, desa, identitas) {
         
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "text-align:center; padding:15px; margin-bottom: 20px;";
+        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px;";
         
         div.innerHTML = `
             <div id="${cardId}" class="qris-container" style="background: transparent !important;">
                 <div class="card-content-overlay">
-                    <div class="label-peserta">PESERTA ASRAMA</div>
-                    <div class="nama-jabatan">${namaTampil}</div>
+                    <div class="label-peserta" style="background:#1B4332; color:#FFD27F; padding:5px 15px; border-radius:4px; font-weight:bold; margin-bottom:5px; display:inline-block;">PESERTA ASRAMA</div>
+                    <div class="nama-jabatan" style="color:#1B4332; font-weight:800; font-size:20px; text-transform:uppercase; margin-bottom:10px;">${namaTampil}</div>
                     <div class="qr-zone" style="background: transparent !important;">
                         <div id="qr-${cardId}"></div>
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#1B4332; margin-top:10px;">⬇️ DOWNLOAD PNG HIJAU</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#1B4332; margin-top:10px;">⬇️ DOWNLOAD PNG</button>
         `;
         container.appendChild(div);
 
@@ -245,34 +264,31 @@ function render2Kartu(container, level, desa, identitas) {
             text: isiBarcode, 
             width: 160, 
             height: 160,
-            colorDark : "#1B4332", // Barcode Hijau Tua
-            colorLight : "rgba(255,255,255,0)", // Transparan Total
+            colorDark : "#000000", // KEMBALI HITAM PEKAT
+            colorLight : "rgba(255,255,255,0)", 
             correctLevel : QRCode.CorrectLevel.H
         });
     }
 }
 
-// --- FUNGSI DOWNLOAD PNG TRANSPARAN ---
+// --- FUNGSI DOWNLOAD ---
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
-    
-    // Gunakan jeda 1 detik agar QR Code ter-render sempurna sebelum difoto
     setTimeout(() => {
         html2canvas(target, {
             scale: 4, 
-            backgroundColor: null, // Membuat background transparan
-            useCORS: true,
-            logging: false
+            backgroundColor: null, 
+            useCORS: true
         }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Konten_${fileName}.png`;
             link.href = canvas.toDataURL("image/png", 1.0);
             link.click();
         });
-    }, 1000); 
+    }, 1200); 
 };
 
-// --- REKAP & DOWNLOAD LAPORAN ---
+// --- REKAP & LAPORAN ---
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
