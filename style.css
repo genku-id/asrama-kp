@@ -136,23 +136,25 @@ input, select {
 
 .label-peserta {
     display: inline-block;
-    background: #0056b3; 
-    color: white;
-    padding: 4px 15px;
-    border-radius: 20px;
+    background: #1B4332; /* Hijau Tua sesuai header desain Canva */
+    color: #FFD27F; /* Kuning Mustard/Krem dari elemen lingkaran di Canva */
+    padding: 6px 20px;
+    border-radius: 4px;
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 8px;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .nama-jabatan {
-    font-size: 20px; /* Font agak gede biar tajam */
-    font-weight: 900;
+    font-size: 22px; 
+    font-weight: 800;
     margin-bottom: 15px;
     text-transform: uppercase;
     line-height: 1.1;
-    color: #000;
+    color: #1B4332; /* Pakai Hijau Tua agar tulisan senada dengan teks ASRAMA */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .qr-zone {
