@@ -116,56 +116,48 @@ input, select {
 /* --- UTILS --- */
 .hidden { display: none !important; }
 
+/* Container kartu dibuat transparan dan tanpa ukuran cm agar pas di Corel */
 .qris-container {
-    width: 6.8cm;
-    height: 10cm;
-    background-image: url('KARTU ASRAMA.jpg'); 
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
+    width: 300px; /* Ukuran bebas, nanti di Corel tinggal ditarik ujungnya */
+    padding: 20px;
+    background: transparent !important; /* WAJIB TRANSPARAN */
     position: relative;
-    display: block;
-    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     border: none !important;
-    overflow: hidden;
 }
 
-/* Kotak Konten dinaikkan agar tidak longgar di atas */
+/* Kotak Konten */
 .card-content-overlay {
-    position: absolute;
-    top: 45%; /* Diubah dari 65% ke 45% agar lebih naik ke atas */
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 95%;
     text-align: center;
     color: #000;
 }
 
 .label-peserta {
     display: inline-block;
-    background: #0056b3; /* Warna biru asrama */
+    background: #0056b3; 
     color: white;
     padding: 4px 15px;
     border-radius: 20px;
-    font-size: 14px; /* Digedein */
+    font-size: 14px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
 .nama-jabatan {
-    font-size: 18px; /* Digedein */
+    font-size: 20px; /* Font agak gede biar tajam */
     font-weight: 900;
     margin-bottom: 15px;
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.1;
     color: #000;
 }
 
 .qr-zone {
     display: inline-block;
-    background: white;
-    padding: 8px; /* Lebih lebar sedikit */
+    background: white; /* Barcode tetap harus ada background putih dikit biar bisa di-scan */
+    padding: 10px;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
