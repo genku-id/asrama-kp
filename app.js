@@ -243,37 +243,33 @@ window.showHalamanBuatKartu = () => {
 
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
-        // Nama asli untuk barcode (ada angka) agar tidak bentrok di sistem
         const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
         const namaUnik = `${identitas} ${labelPeserta}${i}`;
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
-        
-        // Nama bersih untuk tampilan di kartu (tanpa angka)
         const namaTampil = identitas.replace(/\s\d+$/, '');
         
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "display:flex; flex-direction:column; align-items:center; margin-bottom:40px; padding:10px;";
+        div.style = "display:flex; flex-direction:column; align-items:center; margin-bottom:40px;";
         
         div.innerHTML = `
             <div id="${cardId}" class="qris-container">
                 <div class="card-content-overlay">
-                    <div class="label-peserta">[PESERTA ASRAMA]</div>
+                    <div class="label-peserta">PESERTA ASRAMA</div>
                     <div class="nama-jabatan">${namaTampil}</div>
                     <div class="qr-zone">
                         <div id="qr-${cardId}"></div>
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; background:#0056b3; margin-top:10px;">⬇️ DOWNLOAD KARTU</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; background:#0056b3; margin-top:15px;">⬇️ DOWNLOAD KARTU</button>
         `;
         container.appendChild(div);
 
-        // QR Code ukuran pas (sekitar 3cm di cetakan)
         new QRCode(document.getElementById(`qr-${cardId}`), { 
             text: isiBarcode, 
-            width: 110, 
-            height: 110,
+            width: 140, // Digedein
+            height: 140, // Digedein
             correctLevel: QRCode.CorrectLevel.H
         });
     }
