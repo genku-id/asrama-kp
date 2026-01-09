@@ -256,7 +256,7 @@ function render2Kartu(container, level, desa, identitas) {
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#1B4332; margin-top:10px;">⬇️ DOWNLOAD PNG</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#000000; margin-top:10px;">⬇️ DOWNLOAD</button>
         `;
         container.appendChild(div);
 
