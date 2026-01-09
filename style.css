@@ -134,27 +134,28 @@ input, select {
     color: #000;
 }
 
+/* Label PESERTA ASRAMA jadi blok hitam tulisan putih */
 .label-peserta {
     display: inline-block;
-    background: #1B4332; /* Hijau Tua sesuai header desain Canva */
-    color: #FFD27F; /* Kuning Mustard/Krem dari elemen lingkaran di Canva */
-    padding: 6px 20px;
+    background: #000000; /* Hitam Pekat */
+    color: #ffffff; /* Putih Bersih */
+    padding: 5px 15px;
     border-radius: 4px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 1px;
 }
 
+/* Nama Jabatan jadi Hitam Pekat */
 .nama-jabatan {
-    font-size: 22px; 
-    font-weight: 800;
+    font-size: 20px; 
+    font-weight: 900;
     margin-bottom: 15px;
     text-transform: uppercase;
     line-height: 1.1;
-    color: #1B4332; /* Pakai Hijau Tua agar tulisan senada dengan teks ASRAMA */
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #000000; /* Hitam */
+    font-family: sans-serif;
 }
 
 .qr-zone {
