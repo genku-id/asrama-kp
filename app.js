@@ -390,20 +390,19 @@ window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalam
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
     
-    // Kasih jeda sedikit agar canvas barcode benar-benar siap
     setTimeout(() => {
         html2canvas(target, {
-            scale: 4, // Bikin resolusi 4x lipat lebih tajam (High Res)
-            useCORS: true, // Agar gambar background ikut terbawa
-            allowTaint: true,
-            backgroundColor: null // Biar transparansi terjaga jika ada
+            scale: 4, // Resolusi tinggi buat Corel
+            backgroundColor: null, // INI KUNCINYA agar hasil PNG transparan
+            logging: false,
+            useCORS: true
         }).then(canvas => {
             const link = document.createElement('a');
-            link.download = `Kartu_${fileName}.png`;
-            link.href = canvas.toDataURL("image/png", 1.0); // Kualitas maksimal 1.0
+            link.download = `Konten_Kartu_${fileName}.png`;
+            link.href = canvas.toDataURL("image/png");
             link.click();
         });
-    }, 500); 
+    }, 500);
 };
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
