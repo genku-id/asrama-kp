@@ -63,25 +63,7 @@ window.showDashboardAdmin = () => {
     `;
 };
 
-window.toggleLock = () => {
-    const isLocked = localStorage.getItem('sessionLocked') === 'true';
-    if (!isLocked) {
-        localStorage.setItem('activeHari', document.getElementById('set-hari').value);
-        localStorage.setItem('activeSesi', document.getElementById('set-sesi').value);
-    }
-    localStorage.setItem('sessionLocked', !isLocked);
-    showDashboardAdmin();
-};
-
-window.simpanSesiLaluScan = () => {
-    if (localStorage.getItem('sessionLocked') !== 'true') {
-        localStorage.setItem('activeHari', document.getElementById('set-hari').value);
-        localStorage.setItem('activeSesi', document.getElementById('set-sesi').value);
-    }
-    mulaiScanner();
-};
-
-// --- SCANNER (KAMERA DEPAN) ---
+// --- SCANNER ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
@@ -128,17 +110,14 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
     } catch (e) { alert("Error: " + e.message); sedangProses = false; }
 };
 
-// --- OVERLAY FULLSCREEN (MENUTUPI KAMERA) ---
+// --- OVERLAY SUKSES ---
 function tampilkanSukses(identitas, desa, sesi) {
     const overlay = document.getElementById('success-overlay');
     const readerElem = document.getElementById('reader'); 
-
     const namaBersih = identitas.replace(/\s\d+$/, '');
 
-    // 1. SEMBUNYIKAN KAMERA (WAJIB agar tidak menimpa tulisan)
     if (readerElem) readerElem.style.display = 'none';
 
-    // 2. SETUP OVERLAY (Full Biru & Tulisan Putih)
     overlay.setAttribute('style', `
         display: flex !important;
         position: fixed !important;
@@ -161,11 +140,9 @@ function tampilkanSukses(identitas, desa, sesi) {
             <p style="font-size: 1.5rem; margin-bottom: 20px; color: #fff;">Alhamdulillah Jazaa Kumullahu Koiroo</p>
             <h1 style="font-size: 3.5rem; margin: 10px 0; text-transform: uppercase; color: #fff; line-height: 1.1;">${namaBersih}</h1>
             <h2 style="font-size: 2.2rem; color: #FFD700; text-transform: uppercase; margin-bottom: 30px;">${desa}</h2>
-            
             <div style="font-size: 30px; font-weight: bold; border-top: 4px solid rgba(255,255,255,0.4); padding-top: 20px; color: #fff;">
                 ABSEN ${sesi} BERHASIL!
             </div>
-            
             <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
         </div>
     `;
@@ -174,19 +151,19 @@ function tampilkanSukses(identitas, desa, sesi) {
     if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
 
-    // 3. KEMBALIKAN TAMPILAN SETELAH 3 DETIK
     setTimeout(() => { 
         overlay.style.display = 'none';
-        if (readerElem) readerElem.style.display = 'block'; // Kamera muncul lagi
+        if (readerElem) readerElem.style.display = 'block';
         sedangProses = false; 
     }, 3000);
 }
-// --- GENERATOR KARTU (PAKAI ANGKA) ---
+
+// --- GENERATOR KARTU (PNG TRANSPARAN UNTUK COREL) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
         <div class="card">
-            <h3 style="color:#0056b3;">Generator Kartu</h3>
+            <h3>Generator Kartu (Transparan)</h3>
             <select id="select-kategori-kartu">
                 <option value="">-- Pilih Kategori --</option>
                 <option value="DAERAH">PENGURUS DAERAH</option>
@@ -194,10 +171,10 @@ window.showHalamanBuatKartu = () => {
                 <option value="KELOMPOK">KELOMPOK</option>
             </select>
             <div id="sub-pilihan-container" style="margin-top:10px;"></div>
-            <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">BUAT 2 KARTU SEKARANG</button>
+            <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">GENERATE KONTEN</button>
             <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
         </div>
-        <div id="container-kartu-hasil" style="display:flex; flex-direction:column; align-items:center; margin-top:20px;"></div>
+        <div id="container-kartu-hasil" style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-top:20px;"></div>
     `;
     const katSel = document.getElementById('select-kategori-kartu');
     const subContainer = document.getElementById('sub-pilihan-container');
@@ -207,10 +184,10 @@ window.showHalamanBuatKartu = () => {
         subContainer.innerHTML = "";
         btnGen.style.display = "block";
         if (katSel.value === "DESA") {
-            subContainer.innerHTML = `<select id="target-desa"><option value="">-- Pilih Desa --</option>${Object.keys(strukturOrganisasi.WILAYAH).map(d => `<option value="${d}">${d}</option>`).join('')}</select>`;
+            subContainer.innerHTML = `<select id="target-desa">${Object.keys(strukturOrganisasi.WILAYAH).map(d => `<option value="${d}">${d}</option>`).join('')}</select>`;
         } else if (katSel.value === "KELOMPOK") {
             subContainer.innerHTML = `
-                <select id="target-desa-klp"><option value="">-- Pilih Desa --</option>${Object.keys(strukturOrganisasi.WILAYAH).map(d => `<option value="${d}">${d}</option>`).join('')}</select>
+                <select id="target-desa-klp">${Object.keys(strukturOrganisasi.WILAYAH).map(d => `<option value="${d}">${d}</option>`).join('')}</select>
                 <select id="target-klp" disabled><option value="">-- Pilih Kelompok --</option></select>`;
             const dS = document.getElementById('target-desa-klp');
             const kS = document.getElementById('target-klp');
@@ -230,12 +207,10 @@ window.showHalamanBuatKartu = () => {
             strukturOrganisasi.DAERAH.forEach(jab => render2Kartu(container, "DAERAH", "DAERAH", jab));
         } else if (kategori === "DESA") {
             const d = document.getElementById('target-desa').value;
-            if(!d) return alert("Pilih Desa!");
             strukturOrganisasi.DESA_JABATAN.forEach(jab => render2Kartu(container, "DESA", d, jab));
         } else if (kategori === "KELOMPOK") {
             const d = document.getElementById('target-desa-klp').value;
             const k = document.getElementById('target-klp').value;
-            if(!d || !k) return alert("Lengkapi pilihan!");
             render2Kartu(container, "KELOMPOK", d, k);
         }
     };
@@ -250,31 +225,55 @@ function render2Kartu(container, level, desa, identitas) {
         
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "display:flex; flex-direction:column; align-items:center; margin-bottom:40px;";
+        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px;";
         
         div.innerHTML = `
             <div id="${cardId}" class="qris-container">
                 <div class="card-content-overlay">
                     <div class="label-peserta">PESERTA ASRAMA</div>
                     <div class="nama-jabatan">${namaTampil}</div>
-                    <div class="qr-zone">
+                    <div class="qr-zone" style="background:#ffffff !important; padding:10px; border-radius:10px;">
                         <div id="qr-${cardId}"></div>
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:200px; background:#0056b3; margin-top:15px;">⬇️ DOWNLOAD KARTU</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#0056b3; margin-top:10px;">⬇️ DOWNLOAD PNG</button>
         `;
         container.appendChild(div);
 
+        // Render QR Code dengan opsi warna tegas agar tidak putih polos
         new QRCode(document.getElementById(`qr-${cardId}`), { 
             text: isiBarcode, 
-            width: 140, // Digedein
-            height: 140, // Digedein
-            correctLevel: QRCode.CorrectLevel.H
+            width: 150, 
+            height: 150,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
         });
     }
 }
-// --- LAPORAN (ANGKA DIHAPUS) ---
+
+// --- FUNGSI DOWNLOAD PNG TRANSPARAN ---
+window.downloadKartu = (elementId, fileName) => {
+    const target = document.getElementById(elementId);
+    
+    // Gunakan jeda 1 detik agar QR Code ter-render sempurna sebelum difoto
+    setTimeout(() => {
+        html2canvas(target, {
+            scale: 4, 
+            backgroundColor: null, // Membuat background transparan
+            useCORS: true,
+            logging: false
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Konten_${fileName}.png`;
+            link.href = canvas.toDataURL("image/png", 1.0);
+            link.click();
+        });
+    }, 1000); 
+};
+
+// --- REKAP & DOWNLOAD LAPORAN ---
 window.showHalamanRekap = async () => {
     const viewHari = localStorage.getItem('viewHari') || localStorage.getItem('activeHari') || "1"; 
     const content = document.getElementById('pendaftar-section');
@@ -318,18 +317,17 @@ window.showHalamanRekap = async () => {
                 <p style="margin:0 0 8px 0; font-weight:bold; font-size:14px; color:#0056b3;">PILIH HARI:</p>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     ${[1,2,3,4,5,6].map(num => `<button onclick="setViewHari(${num})" style="flex:1; min-width:50px; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari == num ? '#0056b3' : '#ccc'}; color:white;">H${num}</button>`).join('')}
-                    <button onclick="setViewHari('all')" style="flex:2; padding:8px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI (24 KOLOM)</button>
+                    <button onclick="setViewHari('all')" style="flex:2; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI</button>
                 </div>
             </div>
-
             <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
                 <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '1000px'}; font-family: sans-serif;">
-                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; font-size:24px; text-transform:uppercase;">REKAP CHECKLIST ASRAMA ${viewHari === 'all' ? '6 HARI' : 'HARI ' + viewHari}</h2>
+                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; text-transform:uppercase;">REKAP CHECKLIST ASRAMA</h2>
                     <table style="width:100%; border-collapse: collapse; font-size:14px; border: 2px solid #ddd;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
-                                <th rowspan="2" style="padding:15px; border:1px solid #ddd; text-align:left; width:300px; font-size:16px;">NAMA PESERTA / JABATAN</th>
-                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px; font-size:16px;">HARI ${h}</th>`).join('')}
+                                <th rowspan="2" style="padding:15px; border:1px solid #ddd; text-align:left;">NAMA PESERTA / JABATAN</th>
+                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px;">HARI ${h}</th>`).join('')}
                             </tr>
                             <tr style="background:#007bff; color:white;">
                                 ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th style="border:1px solid #ddd; padding:8px; font-size:12px;">SUBUH</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">PAGI</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">SIANG</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">MALAM</th>`).join('')}
@@ -346,7 +344,7 @@ window.showHalamanRekap = async () => {
             dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
         });
 
-        html += renderPenyekatSticky("KIRIMAN KELOMPOK :", biruPenyekat, totalSesi, "white", "15px");
+        html += renderPenyekatSticky("KIRIMAN KELOMPOK", biruPenyekat, totalSesi, "white", "15px");
         Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
             html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px", "13px");
             dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari, true));
@@ -354,29 +352,27 @@ window.showHalamanRekap = async () => {
 
         html += `</tbody></table></div></div>
                  <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                    <button onclick="downloadLaporan()" class="primary-btn" style="background:#0056b3; padding: 15px; font-size: 16px;">📥 DOWNLOAD GAMBAR LAPORAN</button>
+                    <button onclick="downloadLaporan()" class="primary-btn" style="background:#0056b3; padding: 15px;">📥 DOWNLOAD GAMBAR LAPORAN</button>
                     <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
                  </div>`;
         content.innerHTML = html;
     } catch (e) { alert(e.message); showDashboardAdmin(); }
 };
 
-function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft, fontSize = "14px") {
-    return `<tr><td style="padding: 10px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; font-size:${fontSize}; text-transform:uppercase;">${label}</td><td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td></tr>`;
+function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft) {
+    return `<tr><td style="padding: 10px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; text-transform:uppercase;">${label}</td><td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td></tr>`;
 }
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
     let namaTampil = p.nama.includes("Peserta") ? p.nama : hapusAngka(p.nama);
-    
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
-    let prefix = isKelompok ? "- " : "";
-    let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">${prefix}${namaTampil}</td>`;
+    let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent}">${namaTampil}</td>`;
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
             const jam = matrix[p.id][`H${h}_${s}`];
-            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
+            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'};">
                 ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
             </td>`;
         });
@@ -385,25 +381,7 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     return rowHtml;
 }
 
-// --- FUNGSI DOWNLOAD & NAVIGASI ---
 window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
-window.downloadKartu = (elementId, fileName) => {
-    const target = document.getElementById(elementId);
-    
-    setTimeout(() => {
-        html2canvas(target, {
-            scale: 4, // Resolusi tinggi buat Corel
-            backgroundColor: null, // INI KUNCINYA agar hasil PNG transparan
-            logging: false,
-            useCORS: true
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Konten_Kartu_${fileName}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        });
-    }, 500);
-};
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
     html2canvas(target, { scale: 2 }).then(canvas => {
