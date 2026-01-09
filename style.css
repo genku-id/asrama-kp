@@ -115,3 +115,49 @@ input, select {
 
 /* --- UTILS --- */
 .hidden { display: none !important; }
+
+.qris-container {
+    width: 6.8cm;
+    height: 10cm;
+    background-image: url('KARTU ASRAMA.jpg'); /* Pastikan nama file gambarmu benar */
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    position: relative;
+    display: block;
+    margin: 0 auto;
+    /* Menghilangkan border biru lama */
+    border: none !important;
+    overflow: hidden;
+}
+
+/* Kotak Konten yang akan kita pas kan ke tengah kotak putih */
+.card-content-overlay {
+    position: absolute;
+    top: 65%; /* Atur persentase ini untuk naik/turunkan konten ke tengah kotak putih */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    text-align: center;
+    color: #000;
+}
+
+.label-peserta {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.nama-jabatan {
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.qr-zone {
+    display: inline-block;
+    background: white;
+    padding: 5px;
+    border-radius: 4px;
+}
