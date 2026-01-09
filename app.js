@@ -389,14 +389,22 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
 window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
-    html2canvas(target).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Kartu_${fileName}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-    });
+    
+    // Kasih jeda sedikit agar canvas barcode benar-benar siap
+    setTimeout(() => {
+        html2canvas(target, {
+            scale: 4, // Bikin resolusi 4x lipat lebih tajam (High Res)
+            useCORS: true, // Agar gambar background ikut terbawa
+            allowTaint: true,
+            backgroundColor: null // Biar transparansi terjaga jika ada
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Kartu_${fileName}.png`;
+            link.href = canvas.toDataURL("image/png", 1.0); // Kualitas maksimal 1.0
+            link.click();
+        });
+    }, 500); 
 };
-
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
     html2canvas(target, { scale: 2 }).then(canvas => {
