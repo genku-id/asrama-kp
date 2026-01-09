@@ -131,46 +131,56 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
 // --- OVERLAY FULLSCREEN (MENUTUPI KAMERA) ---
 function tampilkanSukses(identitas, desa, sesi) {
     const overlay = document.getElementById('success-overlay');
-    
-    // Sembunyikan angka di overlay
+    const readerElem = document.getElementById('reader'); 
+
     const namaBersih = identitas.replace(/\s\d+$/, '');
 
-    // PAKSA OVERLAY DI DEPAN KAMERA (FULL LAYAR)
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.width = '100vw';
-    overlay.style.height = '100vh';
-    overlay.style.zIndex = '99999'; 
-    overlay.style.backgroundColor = 'rgba(0, 86, 179, 1)'; // Biru solid
-    overlay.style.display = 'flex';
-    overlay.style.flexDirection = 'column';
-    overlay.style.justifyContent = 'center';
-    overlay.style.alignItems = 'center';
+    // 1. SEMBUNYIKAN KAMERA (WAJIB agar tidak menimpa tulisan)
+    if (readerElem) readerElem.style.display = 'none';
+
+    // 2. SETUP OVERLAY (Full Biru & Tulisan Putih)
+    overlay.setAttribute('style', `
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: #0056b3 !important;
+        z-index: 999999 !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        color: white !important;
+        text-align: center !important;
+        font-family: sans-serif !important;
+    `);
 
     overlay.innerHTML = `
-    <div class="celebration-wrap" style="text-align:center; width:100%; padding:20px; color: white;">
-        <div style="font-size:1.2rem; margin-bottom: 20px;">Alhamdulillah Jazaa Kumullahu Koiroo</div>
-        <div style="font-size:2.5rem; font-weight:bold; text-transform:uppercase; margin-bottom:10px; line-height: 1.2;">${namaBersih}</div>
-        <div style="font-size:1.8rem; font-weight:bold; color:#FFD700; text-transform:uppercase; margin-bottom:30px;">${desa}</div>
-        
-        <div style="font-size:22px; font-weight:bold; border-top: 1px solid rgba(255,255,255,0.3); padding-top:20px;">
-            ABSEN ${sesi} BERHASIL!
+        <div style="padding: 20px;">
+            <p style="font-size: 1.5rem; margin-bottom: 20px; color: #fff;">Alhamdulillah Jazaa Kumullahu Koiroo</p>
+            <h1 style="font-size: 3.5rem; margin: 10px 0; text-transform: uppercase; color: #fff; line-height: 1.1;">${namaBersih}</h1>
+            <h2 style="font-size: 2.2rem; color: #FFD700; text-transform: uppercase; margin-bottom: 30px;">${desa}</h2>
+            
+            <div style="font-size: 30px; font-weight: bold; border-top: 4px solid rgba(255,255,255,0.4); padding-top: 20px; color: #fff;">
+                ABSEN ${sesi} BERHASIL!
+            </div>
+            
+            <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
         </div>
-        
-        <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
-    </div>`;
+    `;
 
     const sound = document.getElementById('success-sound');
     if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
 
+    // 3. KEMBALIKAN TAMPILAN SETELAH 3 DETIK
     setTimeout(() => { 
         overlay.style.display = 'none';
+        if (readerElem) readerElem.style.display = 'block'; // Kamera muncul lagi
         sedangProses = false; 
     }, 3000);
 }
-
 // --- GENERATOR KARTU (PAKAI ANGKA) ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
