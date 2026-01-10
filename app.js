@@ -17,7 +17,7 @@ const strukturOrganisasi = {
 
 let html5QrCode;
 let sedangProses = false; 
-let modeKameraSekarang = "user"; 
+let modeKameraSekarang = "user"; // Default kamera depan
 
 // --- LOGIN ---
 window.showLoginPanitia = () => {
@@ -65,7 +65,6 @@ window.showDashboardAdmin = () => {
     `;
 };
 
-// --- FUNGSI TOMBOL DASHBOARD ---
 window.toggleLock = () => {
     const isLocked = localStorage.getItem('sessionLocked') === 'true';
     if (!isLocked) {
@@ -84,7 +83,6 @@ window.simpanSesiLaluScan = () => {
     mulaiScanner();
 };
 
-// --- SCANNER ---
 // --- SCANNER DENGAN FITUR GANTI KAMERA ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
@@ -102,7 +100,6 @@ window.mulaiScanner = () => {
     jalankanKamera();
 };
 
-// Fungsi untuk menyalakan kamera sesuai mode yang dipilih
 const jalankanKamera = () => {
     html5QrCode.start(
         { facingMode: modeKameraSekarang }, 
@@ -114,20 +111,18 @@ const jalankanKamera = () => {
         }
     ).catch(e => { 
         console.error("Kamera Error: ", e);
-        alert("Gagal mengakses kamera. Pastikan izin kamera sudah diberikan.");
+        alert("Gagal mengakses kamera.");
     });
 };
 
-// Fungsi untuk pindah posisi kamera
 window.pindahKamera = async () => {
     if (html5QrCode) {
         try {
             await html5QrCode.stop();
-            // Tukar mode
             modeKameraSekarang = (modeKameraSekarang === "user") ? "environment" : "user";
-            jalankanKamera(); // Nyalakan lagi
+            jalankanKamera(); 
         } catch (e) {
-            console.log("Error saat pindah kamera");
+            console.log("Error pindah kamera");
         }
     }
 };
@@ -140,6 +135,7 @@ window.stopScanner = async () => {
     scanSec.classList.add('hidden');
     sedangProses = false;
 };
+
 // --- PROSES ABSENSI ---
 window.prosesAbsensiOtomatis = async (isiBarcode) => {
     const h = localStorage.getItem('activeHari');
@@ -314,7 +310,6 @@ function render2Kartu(container, level, desa, identitas) {
     }
 }
 
-// --- FUNGSI DOWNLOAD ---
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
     setTimeout(() => {
@@ -369,9 +364,6 @@ window.showHalamanRekap = async () => {
 
         const totalSesi = viewHari === 'all' ? 24 : 4;
         const biruPenyekat = "#0056b3";
-
-        // Tentukan lebar minimum tabel agar tidak nabrak
-        // Jika 1 hari = 600px, Jika semua hari (6 hari) = 2200px
         const minLebarTabel = viewHari === 'all' ? '2200px' : '650px';
 
         let html = `
@@ -441,7 +433,7 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
     let namaTampil = isKelompok ? p.nama : hapusAngka(p.nama);
     let prefix = isKelompok ? "- " : "";
-    let styleIndent = isKelompok ? "padding-left:35px;" : "padding-left:10px;";
+    let styleIndent = "padding-left:15px;";
 
     let rowHtml = `<tr>
         <td style="padding:10px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; text-align:left; ${styleIndent} overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
@@ -460,6 +452,7 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     rowHtml += `</tr>`;
     return rowHtml;
 }
+
 window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
