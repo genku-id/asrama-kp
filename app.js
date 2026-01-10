@@ -115,7 +115,6 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
         const part = isiBarcode.split('|');
         if (part.length < 3) { sedangProses = false; return alert("Barcode Tidak Valid!"); }
         
-        // PERBAIKAN: Perbaikan syntax .replace
         const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
         const docRef = doc(db, "absensi_asrama", idDoc);
         
@@ -322,8 +321,7 @@ window.showHalamanRekap = async () => {
 
             if (!matrix[idPeserta]) {
                 matrix[idPeserta] = {};
-                // PERBAIKAN: Menggunakan ID dokumen asli agar bisa dihapus
-                const info = { id: docSnap.id, nama: d.nama, desa: d.desa, level: d.level }; 
+                const info = { id: idPeserta, nama: d.nama, desa: d.desa, level: d.level }; 
                 if (d.level === "DAERAH") dataRekap.DAERAH.push(info);
                 else if (d.level === "DESA") {
                     if (!dataRekap.PENGURUS_DESA[d.desa]) dataRekap.PENGURUS_DESA[d.desa] = [];
@@ -394,18 +392,18 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
     let namaTampil = isKelompok ? p.nama : hapusAngka(p.nama);
     let prefix = isKelompok ? "- " : "";
-    let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
+    let styleIndent = isKelompok ? "padding-left:15px;" : "padding-left:15px;";
 
     let rowHtml = `<tr>
         <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">
-            <button onclick="hapusDataAbsen('${p.id}')" style="background:none; border:none; color:#dc3545; cursor:pointer; margin-right:8px; font-weight:bold;">[x]</button>
             ${prefix}${namaTampil}
         </td>`;
 
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
-            const jam = matrix[p.id][`H${h}_${s}`];
+            // PERBAIKAN: Gunakan tanda tanya (?) agar tidak error jika data sesi kosong
+            const jam = matrix[p.id] ? matrix[p.id][`H${h}_${s}`] : null;
             rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
                 ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
             </td>`;
@@ -429,19 +427,6 @@ window.downloadLaporan = () => {
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
 
-// --- FUNGSI HAPUS ---
-window.hapusDataAbsen = async (idDoc) => {
-    if (confirm("Apakah Anda yakin ingin menghapus data absen ini?")) {
-        try {
-            await deleteDoc(doc(db, "absensi_asrama", idDoc));
-            alert("Data berhasil dihapus!");
-            showHalamanRekap(); 
-        } catch (e) {
-            alert("Gagal menghapus: " + e.message);
-        }
-    }
-};
-
 // --- FUNGSI RESET TOTAL ---
 window.resetSemuaDataAbsensi = async () => {
     const pass = prompt("Masukkan Sandi Konfirmasi untuk RESET TOTAL:");
@@ -450,12 +435,10 @@ window.resetSemuaDataAbsensi = async () => {
             try {
                 const q = query(collection(db, "absensi_asrama"));
                 const snap = await getDocs(q);
-                
                 const promises = snap.docs.map(d => deleteDoc(d.ref));
                 await Promise.all(promises);
-                
                 alert("Database Berhasil Dibersihkan!");
-                location.reload(); // Paksa reload agar data hantu hilang
+                location.reload(); 
             } catch (e) {
                 alert("Gagal reset: " + e.message);
             }
