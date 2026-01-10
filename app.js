@@ -64,7 +64,7 @@ window.showDashboardAdmin = () => {
     `;
 };
 
-// --- FUNGSI TOMBOL DASHBOARD (PERBAIKAN) ---
+// --- FUNGSI TOMBOL DASHBOARD ---
 window.toggleLock = () => {
     const isLocked = localStorage.getItem('sessionLocked') === 'true';
     if (!isLocked) {
@@ -115,12 +115,12 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
         const part = isiBarcode.split('|');
         if (part.length < 3) { sedangProses = false; return alert("Barcode Tidak Valid!"); }
         
-        // ID Dokumen harus unik per orang, per hari, dan per sesi
-        const idDoc = `${isiBarcode.replace/\|/g, '_')}_H${h}_${s}`; 
+        // PERBAIKAN: Perbaikan syntax .replace
+        const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
         const docRef = doc(db, "absensi_asrama", idDoc);
         
         await setDoc(docRef, {
-            id: idDoc, // Simpan ID di dalam data agar mudah dihapus nanti
+            id: idDoc, 
             nama: part[2], 
             desa: part[1],
             level: part[0],
@@ -131,6 +131,7 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
         tampilkanSukses(part[2], part[1], s);
     } catch (e) { alert("Error: " + e.message); sedangProses = false; }
 };
+
 // --- OVERLAY SUKSES ---
 window.tampilkanSukses = (identitas, desa, sesi) => {
     const overlay = document.getElementById('success-overlay');
@@ -239,8 +240,6 @@ window.showHalamanBuatKartu = () => {
 
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
-        // 1. Logika Nama Unik untuk Barcode & Nama File
-        // GIRIPENI 1 akan tetap utuh, ditambah "Peserta 1" jika levelnya KELOMPOK
         const labelUrutan = level === "KELOMPOK" ? `Peserta ${i}` : "";
         const namaUnik = `${identitas} ${labelUrutan}`.trim();
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
@@ -249,16 +248,12 @@ function render2Kartu(container, level, desa, identitas) {
         const div = document.createElement('div');
         div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px; margin-bottom: 30px;";
         
-        // 2. Logika Info Tambahan di bawah Nama Jabatan
         let infoTambahan = "";
         if (level === "DESA") {
-            // Menampilkan nama desa untuk pengurus desa
             infoTambahan = `<div style="color:#000000; font-weight:bold; font-size:14px; margin-top:-5px; margin-bottom:10px; text-transform:uppercase;">DESA ${desa}</div>`;
         } else if (level === "KELOMPOK") {
-            // Menampilkan urutan peserta untuk kiriman kelompok
             infoTambahan = `<div style="color:#000000; font-weight:bold; font-size:14px; margin-top:-5px; margin-bottom:10px; text-transform:uppercase;">PESERTA ${i}</div>`;
         } else {
-            // Untuk DAERAH, beri sedikit jarak agar tidak terlalu mepet barcode
             infoTambahan = `<div style="margin-bottom:15px;"></div>`;
         }
 
@@ -266,11 +261,8 @@ function render2Kartu(container, level, desa, identitas) {
             <div id="${cardId}" class="qris-container" style="background: transparent !important; width: 300px; margin: 0 auto;">
                 <div class="card-content-overlay" style="text-align:center;">
                     <div class="label-peserta" style="background:#000000; color:#ffffff; padding:5px 15px; border-radius:4px; font-weight:bold; margin-bottom:8px; display:inline-block; font-size:13px; letter-spacing:1px;">PESERTA ASRAMA</div>
-                    
                     <div class="nama-jabatan" style="color:#000000; font-weight:900; font-size:22px; text-transform:uppercase; margin-bottom:5px; line-height:1.1; font-family:sans-serif;">${identitas}</div>
-                    
                     ${infoTambahan}
-                    
                     <div class="qr-zone" style="background: transparent !important; display: inline-block;">
                         <div id="qr-${cardId}"></div>
                     </div>
@@ -289,6 +281,7 @@ function render2Kartu(container, level, desa, identitas) {
         });
     }
 }
+
 // --- FUNGSI DOWNLOAD ---
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
@@ -321,17 +314,17 @@ window.showHalamanRekap = async () => {
         let matrix = {}; 
         let dataRekap = { DAERAH: [], PENGURUS_DESA: {}, KIRIMAN_KELOMPOK: {} };
 
-        snap.forEach(docSnap => { // ganti 'doc' jadi 'docSnap' agar tidak bentrok dengan fungsi doc()
-    const d = docSnap.data();
-    const idPeserta = `${d.level}|${d.desa}|${d.nama}`;
-    const sesiKey = `H${d.hari}_${d.sesi}`;
-    const jam = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '✓';
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            const idPeserta = `${d.level}|${d.desa}|${d.nama}`;
+            const sesiKey = `H${d.hari}_${d.sesi}`;
+            const jam = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '✓';
 
-    if (!matrix[idPeserta]) {
-        matrix[idPeserta] = {};
-        // KUNCI PERBAIKAN: Gunakan ID dokumen asli (docSnap.id)
-        const info = { id: docSnap.id, nama: d.nama, desa: d.desa, level: d.level }; 
-        if (d.level === "DAERAH") dataRekap.DAERAH.push(info);
+            if (!matrix[idPeserta]) {
+                matrix[idPeserta] = {};
+                // PERBAIKAN: Menggunakan ID dokumen asli agar bisa dihapus
+                const info = { id: docSnap.id, nama: d.nama, desa: d.desa, level: d.level }; 
+                if (d.level === "DAERAH") dataRekap.DAERAH.push(info);
                 else if (d.level === "DESA") {
                     if (!dataRekap.PENGURUS_DESA[d.desa]) dataRekap.PENGURUS_DESA[d.desa] = [];
                     dataRekap.PENGURUS_DESA[d.desa].push(info);
@@ -399,15 +392,10 @@ function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft) 
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
-    
-    // Logika Nama: Jika Kelompok, jangan hapus angka (Giripeni 1 tetap Giripeni 1)
     let namaTampil = isKelompok ? p.nama : hapusAngka(p.nama);
-    
-    // Definisi prefix agar tidak error "is not defined"
     let prefix = isKelompok ? "- " : "";
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
 
-    // Tambahkan tombol hapus kecil (x) di samping nama
     let rowHtml = `<tr>
         <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">
             <button onclick="hapusDataAbsen('${p.id}')" style="background:none; border:none; color:#dc3545; cursor:pointer; margin-right:8px; font-weight:bold;">[x]</button>
@@ -441,19 +429,20 @@ window.downloadLaporan = () => {
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
 
+// --- FUNGSI HAPUS ---
 window.hapusDataAbsen = async (idDoc) => {
     if (confirm("Apakah Anda yakin ingin menghapus data absen ini?")) {
         try {
             await deleteDoc(doc(db, "absensi_asrama", idDoc));
             alert("Data berhasil dihapus!");
-            showHalamanRekap(); // Refresh laporan
+            showHalamanRekap(); 
         } catch (e) {
             alert("Gagal menghapus: " + e.message);
         }
     }
 };
 
-// --- FUNGSI RESET TOTAL (HAPUS SEMUA DATA EVENT) ---
+// --- FUNGSI RESET TOTAL ---
 window.resetSemuaDataAbsensi = async () => {
     const pass = prompt("Masukkan Sandi Konfirmasi untuk RESET TOTAL:");
     if (pass === "123") { 
@@ -465,8 +454,8 @@ window.resetSemuaDataAbsensi = async () => {
                 const promises = snap.docs.map(d => deleteDoc(d.ref));
                 await Promise.all(promises);
                 
-                alert("Database Berhasil Dibersihkan! Siap untuk event berikutnya.");
-                showDashboardAdmin();
+                alert("Database Berhasil Dibersihkan!");
+                location.reload(); // Paksa reload agar data hantu hilang
             } catch (e) {
                 alert("Gagal reset: " + e.message);
             }
