@@ -93,7 +93,7 @@ window.mulaiScanner = () => {
     // 2. Buat Tombol Ganti Kamera baru
     const btnPindah = document.createElement('button');
     btnPindah.id = 'btn-pindah-kamera';
-    btnPindah.innerHTML = "🔄 GANTI KAMERA";
+    btnPindah.innerHTML = "🔄";
     btnPindah.setAttribute('style', `
         position: fixed;
         top: 20px;
