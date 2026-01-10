@@ -87,15 +87,38 @@ window.simpanSesiLaluScan = () => {
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
+    // 1. Bersihkan tombol ganti kamera lama jika ada (biar tidak double)
+    const tombolLama = document.getElementById('btn-pindah-kamera');
+    if (tombolLama) tombolLama.remove();
+    // 2. Buat Tombol Ganti Kamera baru
+    const btnPindah = document.createElement('button');
+    btnPindah.id = 'btn-pindah-kamera';
+    btnPindah.innerHTML = "🔄 GANTI KAMERA";
+    btnPindah.setAttribute('style', `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10001; /* Harus lebih tinggi dari z-index scanner-section */
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: 2px solid white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+    `);
     
-    // Setup area tombol di dalam div reader
-    const readerElem = document.getElementById('reader');
-    readerElem.innerHTML = `
-        <div style="position:absolute; top:15px; right:15px; z-index:999;">
-            <button onclick="pindahKamera()" style="background:rgba(0,0,0,0.6); color:white; border:2px solid white; padding:10px; border-radius:50%; width:50px; height:50px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;">🔄</button>
-        </div>
-    `;
+    // 3. Pasang fungsi klik
+    btnPindah.onclick = (e) => {
+        e.preventDefault();
+        window.pindahKamera();
+    };
+    
+    // 4. Masukkan ke dalam scanner-section (layar hitam)
+    scanSec.appendChild(btnPindah);
 
+    // 5. Jalankan Library
     html5QrCode = new Html5Qrcode("reader");
     jalankanKamera();
 };
@@ -110,8 +133,7 @@ const jalankanKamera = () => {
             prosesAbsensiOtomatis(txt); 
         }
     ).catch(e => { 
-        console.error("Kamera Error: ", e);
-        alert("Gagal mengakses kamera.");
+        alert("Kamera Error: Pastikan izin kamera diizinkan di browser.");
     });
 };
 
@@ -119,10 +141,12 @@ window.pindahKamera = async () => {
     if (html5QrCode) {
         try {
             await html5QrCode.stop();
+            // Tukar mode kamera
             modeKameraSekarang = (modeKameraSekarang === "user") ? "environment" : "user";
+            // Restart kamera dengan mode baru
             jalankanKamera(); 
         } catch (e) {
-            console.log("Error pindah kamera");
+            console.error("Gagal pindah kamera", e);
         }
     }
 };
