@@ -345,17 +345,24 @@ window.showHalamanRekap = async () => {
                     <button onclick="setViewHari('all')" style="flex:2; padding:10px 0; border:none; border-radius:5px; font-size:13px; font-weight:bold; background:${viewHari === 'all' ? '#28a745' : '#666'}; color:white;">SEMUA HARI</button>
                 </div>
             </div>
+
             <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
-                <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '1000px'}; font-family: sans-serif;">
+                <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '100%'} ; font-family: sans-serif;">
                     <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; text-transform:uppercase;">REKAP CHECKLIST ASRAMA</h2>
-                    <table style="width:100%; border-collapse: collapse; font-size:14px; border: 2px solid #ddd;">
+                    
+                    <table style="width:100%; border-collapse: collapse; font-size:13px; border: 2px solid #ddd; table-layout: fixed;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
-                                <th rowspan="2" style="padding:15px; border:1px solid #ddd; text-align:left;">NAMA PESERTA / JABATAN</th>
-                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px;">HARI ${h}</th>`).join('')}
+                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:left; width:220px;">NAMA PESERTA / JABATAN</th>
+                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px; font-size:15px;">HARI ${h}</th>`).join('')}
                             </tr>
                             <tr style="background:#007bff; color:white;">
-                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th style="border:1px solid #ddd; padding:8px; font-size:12px;">SUBUH</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">PAGI</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">SIANG</th><th style="border:1px solid #ddd; padding:8px; font-size:12px;">MALAM</th>`).join('')}
+                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">SUBUH</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">PAGI</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">SIANG</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">MALAM</th>
+                                `).join('')}
                             </tr>
                         </thead>
                         <tbody>`;
@@ -365,13 +372,13 @@ window.showHalamanRekap = async () => {
 
         html += renderPenyekatSticky("PENGURUS DESA", biruPenyekat, totalSesi, "white", "15px");
         Object.keys(dataRekap.PENGURUS_DESA).sort().forEach(desa => {
-            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px", "13px");
+            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px");
             dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
         });
 
         html += renderPenyekatSticky("KIRIMAN KELOMPOK", biruPenyekat, totalSesi, "white", "15px");
         Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
-            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px", "13px");
+            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px");
             dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari, true));
         });
 
@@ -385,34 +392,37 @@ window.showHalamanRekap = async () => {
 };
 
 function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft) {
-    return `<tr><td style="padding: 10px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; text-transform:uppercase;">${label}</td><td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td></tr>`;
+    return `<tr>
+        <td style="padding: 10px ${paddingLeft}; font-weight:bold; background:${bgColor}; color:${textColor}; border:1px solid #ddd; text-align:left; text-transform:uppercase; font-size:12px;">
+            ${label}
+        </td>
+        <td colspan="${totalCol}" style="background:${bgColor}; border:1px solid #ddd;"></td>
+    </tr>`;
 }
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
     let namaTampil = isKelompok ? p.nama : hapusAngka(p.nama);
     let prefix = isKelompok ? "- " : "";
-    let styleIndent = isKelompok ? "padding-left:15px;" : "padding-left:15px;";
+    let styleIndent = isKelompok ? "padding-left:35px;" : "padding-left:10px;";
 
     let rowHtml = `<tr>
-        <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">
+        <td style="padding:10px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; text-align:left; ${styleIndent} overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
             ${prefix}${namaTampil}
         </td>`;
 
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
-            // PERBAIKAN: Gunakan tanda tanya (?) agar tidak error jika data sesi kosong
             const jam = matrix[p.id] ? matrix[p.id][`H${h}_${s}`] : null;
-            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
-                ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
+            rowHtml += `<td style="padding:8px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; font-size:12px;">
+                ${jam ? `<span style="color:#28a745; font-weight:bold;">${jam}</span>` : '-'}
             </td>`;
         });
     });
     rowHtml += `</tr>`;
     return rowHtml;
 }
-
 window.setViewHari = (num) => { localStorage.setItem('viewHari', num); showHalamanRekap(); };
 window.downloadLaporan = () => {
     const target = document.getElementById('print-rekap-area');
