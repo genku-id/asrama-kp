@@ -337,6 +337,10 @@ window.showHalamanRekap = async () => {
         const totalSesi = viewHari === 'all' ? 24 : 4;
         const biruPenyekat = "#0056b3";
 
+        // Tentukan lebar minimum tabel agar tidak nabrak
+        // Jika 1 hari = 600px, Jika semua hari (6 hari) = 2200px
+        const minLebarTabel = viewHari === 'all' ? '2200px' : '650px';
+
         let html = `
             <div style="background:#f4f7f6; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #ddd;">
                 <p style="margin:0 0 8px 0; font-weight:bold; font-size:14px; color:#0056b3;">PILIH HARI:</p>
@@ -346,39 +350,39 @@ window.showHalamanRekap = async () => {
                 </div>
             </div>
 
-            <div style="overflow-x:auto; border:1px solid #ddd; border-radius:8px;">
-                <div id="print-rekap-area" style="background:white; padding:20px; min-width:${viewHari === 'all' ? '2500px' : '100%'} ; font-family: sans-serif;">
-                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; text-transform:uppercase;">REKAP CHECKLIST ASRAMA</h2>
+            <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border:1px solid #ddd; border-radius:8px;">
+                <div id="print-rekap-area" style="background:white; padding:15px; width: max-content; min-width: 100%;">
+                    <h2 style="text-align:center; color:#0056b3; margin-bottom:20px; border-bottom:3px solid #0056b3; padding-bottom:15px; text-transform:uppercase; font-size: 18px;">REKAP CHECKLIST ASRAMA</h2>
                     
-                    <table style="width:100%; border-collapse: collapse; font-size:13px; border: 2px solid #ddd; table-layout: fixed;">
+                    <table style="min-width: ${minLebarTabel}; border-collapse: collapse; font-size:12px; border: 1px solid #ddd; table-layout: fixed;">
                         <thead>
                             <tr style="background:#0056b3; color:white;">
-                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:left; width:220px;">NAMA PESERTA / JABATAN</th>
-                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:10px; font-size:15px;">HARI ${h}</th>`).join('')}
+                                <th rowspan="2" style="padding:10px; border:1px solid #ddd; text-align:left; width:180px;">NAMA PESERTA / JABATAN</th>
+                                ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `<th colspan="4" style="border:1px solid #ddd; padding:8px; font-size:14px;">HARI ${h}</th>`).join('')}
                             </tr>
                             <tr style="background:#007bff; color:white;">
                                 ${(viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari]).map(h => `
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">SUBUH</th>
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">PAGI</th>
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">SIANG</th>
-                                    <th style="border:1px solid #ddd; padding:8px; font-size:11px; width:75px;">MALAM</th>
+                                    <th style="border:1px solid #ddd; padding:5px; font-size:10px; width:65px;">SUB</th>
+                                    <th style="border:1px solid #ddd; padding:5px; font-size:10px; width:65px;">PAG</th>
+                                    <th style="border:1px solid #ddd; padding:5px; font-size:10px; width:65px;">SIA</th>
+                                    <th style="border:1px solid #ddd; padding:8px; font-size:10px; width:65px;">MAL</th>
                                 `).join('')}
                             </tr>
                         </thead>
                         <tbody>`;
 
-        html += renderPenyekatSticky("PENGURUS DAERAH", biruPenyekat, totalSesi, "white", "15px");
+        html += renderPenyekatSticky("PENGURUS DAERAH", biruPenyekat, totalSesi, "white", "10px");
         dataRekap.DAERAH.sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
 
-        html += renderPenyekatSticky("PENGURUS DESA", biruPenyekat, totalSesi, "white", "15px");
+        html += renderPenyekatSticky("PENGURUS DESA", biruPenyekat, totalSesi, "white", "10px");
         Object.keys(dataRekap.PENGURUS_DESA).sort().forEach(desa => {
-            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px");
+            html += renderPenyekatSticky(`DESA ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "15px");
             dataRekap.PENGURUS_DESA[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari));
         });
 
-        html += renderPenyekatSticky("KIRIMAN KELOMPOK", biruPenyekat, totalSesi, "white", "15px");
+        html += renderPenyekatSticky("KIRIMAN KELOMPOK", biruPenyekat, totalSesi, "white", "10px");
         Object.keys(dataRekap.KIRIMAN_KELOMPOK).sort().forEach(desa => {
-            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "20px");
+            html += renderPenyekatSticky(`KIRIMAN : ${desa}`, "#f2f2f2", totalSesi, biruPenyekat, "15px");
             dataRekap.KIRIMAN_KELOMPOK[desa].sort((a,b) => a.nama.localeCompare(b.nama)).forEach(p => html += renderBarisMatriks(p, matrix, viewHari, true));
         });
 
