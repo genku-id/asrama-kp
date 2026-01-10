@@ -114,22 +114,23 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
     try {
         const part = isiBarcode.split('|');
         if (part.length < 3) { sedangProses = false; return alert("Barcode Tidak Valid!"); }
-        const [level, desa, identitas] = part;
-        const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
+        
+        // ID Dokumen harus unik per orang, per hari, dan per sesi
+        const idDoc = `${isiBarcode.replace/\|/g, '_')}_H${h}_${s}`; 
         const docRef = doc(db, "absensi_asrama", idDoc);
         
         await setDoc(docRef, {
-            nama: identitas, 
-            desa: desa,
-            level: level,
+            id: idDoc, // Simpan ID di dalam data agar mudah dihapus nanti
+            nama: part[2], 
+            desa: part[1],
+            level: part[0],
             hari: h,
             sesi: s,
             waktu_absen: serverTimestamp()
         });
-        tampilkanSukses(identitas, desa, s);
+        tampilkanSukses(part[2], part[1], s);
     } catch (e) { alert("Error: " + e.message); sedangProses = false; }
 };
-
 // --- OVERLAY SUKSES ---
 window.tampilkanSukses = (identitas, desa, sesi) => {
     const overlay = document.getElementById('success-overlay');
@@ -320,16 +321,17 @@ window.showHalamanRekap = async () => {
         let matrix = {}; 
         let dataRekap = { DAERAH: [], PENGURUS_DESA: {}, KIRIMAN_KELOMPOK: {} };
 
-        snap.forEach(doc => {
-            const d = doc.data();
-            const idPeserta = `${d.level}|${d.desa}|${d.nama}`;
-            const sesiKey = `H${d.hari}_${d.sesi}`;
-            const jam = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '✓';
+        snap.forEach(docSnap => { // ganti 'doc' jadi 'docSnap' agar tidak bentrok dengan fungsi doc()
+    const d = docSnap.data();
+    const idPeserta = `${d.level}|${d.desa}|${d.nama}`;
+    const sesiKey = `H${d.hari}_${d.sesi}`;
+    const jam = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '✓';
 
-            if (!matrix[idPeserta]) {
-                matrix[idPeserta] = {};
-                const info = { id: idPeserta, nama: d.nama, desa: d.desa, level: d.level };
-                if (d.level === "DAERAH") dataRekap.DAERAH.push(info);
+    if (!matrix[idPeserta]) {
+        matrix[idPeserta] = {};
+        // KUNCI PERBAIKAN: Gunakan ID dokumen asli (docSnap.id)
+        const info = { id: docSnap.id, nama: d.nama, desa: d.desa, level: d.level }; 
+        if (d.level === "DAERAH") dataRekap.DAERAH.push(info);
                 else if (d.level === "DESA") {
                     if (!dataRekap.PENGURUS_DESA[d.desa]) dataRekap.PENGURUS_DESA[d.desa] = [];
                     dataRekap.PENGURUS_DESA[d.desa].push(info);
