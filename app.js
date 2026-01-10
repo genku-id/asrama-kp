@@ -237,42 +237,58 @@ window.showHalamanBuatKartu = () => {
 
 function render2Kartu(container, level, desa, identitas) {
     for (let i = 1; i <= 2; i++) {
-        const labelPeserta = level === "KELOMPOK" ? "Peserta " : "";
-        const namaUnik = `${identitas} ${labelPeserta}${i}`;
+        // 1. Logika Nama Unik untuk Barcode & Nama File
+        // GIRIPENI 1 akan tetap utuh, ditambah "Peserta 1" jika levelnya KELOMPOK
+        const labelUrutan = level === "KELOMPOK" ? `Peserta ${i}` : "";
+        const namaUnik = `${identitas} ${labelUrutan}`.trim();
         const isiBarcode = `${level}|${desa}|${namaUnik}`;
-        const namaTampil = identitas.replace(/\s\d+$/, '');
         
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px; margin-bottom: 20px;";
+        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px; margin-bottom: 30px;";
         
+        // 2. Logika Info Tambahan di bawah Nama Jabatan
+        let infoTambahan = "";
+        if (level === "DESA") {
+            // Menampilkan nama desa untuk pengurus desa
+            infoTambahan = `<div style="color:#000000; font-weight:bold; font-size:14px; margin-top:-5px; margin-bottom:10px; text-transform:uppercase;">DESA ${desa}</div>`;
+        } else if (level === "KELOMPOK") {
+            // Menampilkan urutan peserta untuk kiriman kelompok
+            infoTambahan = `<div style="color:#000000; font-weight:bold; font-size:14px; margin-top:-5px; margin-bottom:10px; text-transform:uppercase;">PESERTA ${i}</div>`;
+        } else {
+            // Untuk DAERAH, beri sedikit jarak agar tidak terlalu mepet barcode
+            infoTambahan = `<div style="margin-bottom:15px;"></div>`;
+        }
+
         div.innerHTML = `
-            <div id="${cardId}" class="qris-container" style="background: transparent !important;">
-                <div class="card-content-overlay">
-                    <div class="label-peserta" style="background:#000000; color:#ffffff; padding:5px 15px; border-radius:4px; font-weight:bold; margin-bottom:5px; display:inline-block; font-size:14px;">PESERTA ASRAMA</div>
+            <div id="${cardId}" class="qris-container" style="background: transparent !important; width: 300px; margin: 0 auto;">
+                <div class="card-content-overlay" style="text-align:center;">
+                    <div class="label-peserta" style="background:#000000; color:#ffffff; padding:5px 15px; border-radius:4px; font-weight:bold; margin-bottom:8px; display:inline-block; font-size:13px; letter-spacing:1px;">PESERTA ASRAMA</div>
                     
-                    <div class="nama-jabatan" style="color:#000000; font-weight:800; font-size:22px; text-transform:uppercase; margin-bottom:10px; line-height:1.2;">${namaTampil}</div>
+                    <div class="nama-jabatan" style="color:#000000; font-weight:900; font-size:22px; text-transform:uppercase; margin-bottom:5px; line-height:1.1; font-family:sans-serif;">${identitas}</div>
                     
-                    <div class="qr-zone" style="background: transparent !important;">
+                    ${infoTambahan}
+                    
+                    <div class="qr-zone" style="background: transparent !important; display: inline-block;">
                         <div id="qr-${cardId}"></div>
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#004080; color:#ffffff; margin-top:15px; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">⬇️ DOWNLOAD</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; max-width:250px; background:#004080; color:#ffffff; margin-top:15px; padding:12px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬇️ DOWNLOAD PNG</button>
         `;
         container.appendChild(div);
 
+        // 3. Render Barcode Hitam Transparan
         new QRCode(document.getElementById(`qr-${cardId}`), { 
             text: isiBarcode, 
             width: 160, 
             height: 160,
-            colorDark : "#000000", // Barcode Hitam Pekat
-            colorLight : "rgba(255,255,255,0)", // Latar transparan agar mudah ditempel di Corel/Canva
+            colorDark : "#000000",
+            colorLight : "rgba(255,255,255,0)",
             correctLevel : QRCode.CorrectLevel.H
         });
     }
 }
-
 // --- FUNGSI DOWNLOAD ---
 window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
