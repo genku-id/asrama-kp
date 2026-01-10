@@ -60,6 +60,7 @@ window.showDashboardAdmin = () => {
         <button onclick="simpanSesiLaluScan()" class="scan-btn" style="height:100px; font-size:20px; background:#0056b3; margin-top:0;">📸 SCAN SEKARANG</button>
         <button onclick="showHalamanRekap()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📊 REKAP KEHADIRAN</button>
         <button onclick="showHalamanBuatKartu()" class="primary-btn" style="background:#0056b3; margin-top:10px;">📇 BUAT KARTU BARCODE</button>
+        <button onclick="resetSemuaDataAbsensi()" class="primary-btn" style="background:#dc3545; margin-top:30px; font-size:12px;">⚠️ RESET SEMUA DATA (EVENT BARU)</button>
     `;
 };
 
@@ -398,7 +399,11 @@ function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
     let namaTampil = p.nama.includes("Peserta") ? p.nama : hapusAngka(p.nama);
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
-    let rowHtml = `<tr><td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent}">${namaTampil}</td>`;
+    let rowHtml = `<tr>
+        <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent}">
+            <button onclick="hapusDataAbsen('${p.id}')" style="background:none; border:none; color:red; cursor:pointer; margin-right:5px;">[x]</button>
+            ${prefix}${namaTampil}
+        </td>`;
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
