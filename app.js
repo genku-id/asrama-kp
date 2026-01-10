@@ -244,19 +244,21 @@ function render2Kartu(container, level, desa, identitas) {
         
         const cardId = `kartu-${Math.random().toString(36).substr(2, 9)}`;
         const div = document.createElement('div');
-        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px;";
+        div.style = "text-align:center; padding:15px; border:1px dashed #ccc; border-radius:10px; margin-bottom: 20px;";
         
         div.innerHTML = `
             <div id="${cardId}" class="qris-container" style="background: transparent !important;">
                 <div class="card-content-overlay">
-                    <div class="label-peserta" style="background:#1B4332; color:#FFD27F; padding:5px 15px; border-radius:4px; font-weight:bold; margin-bottom:5px; display:inline-block;">PESERTA ASRAMA</div>
-                    <div class="nama-jabatan" style="color:#1B4332; font-weight:800; font-size:20px; text-transform:uppercase; margin-bottom:10px;">${namaTampil}</div>
+                    <div class="label-peserta" style="background:#000000; color:#ffffff; padding:5px 15px; border-radius:4px; font-weight:bold; margin-bottom:5px; display:inline-block; font-size:14px;">PESERTA ASRAMA</div>
+                    
+                    <div class="nama-jabatan" style="color:#000000; font-weight:800; font-size:22px; text-transform:uppercase; margin-bottom:10px; line-height:1.2;">${namaTampil}</div>
+                    
                     <div class="qr-zone" style="background: transparent !important;">
                         <div id="qr-${cardId}"></div>
                     </div>
                 </div>
             </div>
-            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#000000; margin-top:10px;">⬇️ DOWNLOAD</button>
+            <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; background:#004080; color:#ffffff; margin-top:15px; padding:10px; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">⬇️ DOWNLOAD</button>
         `;
         container.appendChild(div);
 
@@ -264,8 +266,8 @@ function render2Kartu(container, level, desa, identitas) {
             text: isiBarcode, 
             width: 160, 
             height: 160,
-            colorDark : "#000000", // KEMBALI HITAM PEKAT
-            colorLight : "rgba(255,255,255,0)", 
+            colorDark : "#000000", // Barcode Hitam Pekat
+            colorLight : "rgba(255,255,255,0)", // Latar transparan agar mudah ditempel di Corel/Canva
             correctLevel : QRCode.CorrectLevel.H
         });
     }
@@ -276,8 +278,8 @@ window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
     setTimeout(() => {
         html2canvas(target, {
-            scale: 4, 
-            backgroundColor: null, 
+            scale: 4, // Skala tinggi agar hasil tidak pecah saat di-print
+            backgroundColor: null, // Menghasilkan PNG transparan
             useCORS: true
         }).then(canvas => {
             const link = document.createElement('a');
