@@ -397,18 +397,26 @@ function renderPenyekatSticky(label, bgColor, totalCol, textColor, paddingLeft) 
 
 function renderBarisMatriks(p, matrix, viewHari, isKelompok = false) {
     const hapusAngka = (str) => str.replace(/\s\d+$/, '');
-    let namaTampil = p.nama.includes("Peserta") ? p.nama : hapusAngka(p.nama);
+    
+    // Logika Nama: Jika Kelompok, jangan hapus angka (Giripeni 1 tetap Giripeni 1)
+    let namaTampil = isKelompok ? p.nama : hapusAngka(p.nama);
+    
+    // Definisi prefix agar tidak error "is not defined"
+    let prefix = isKelompok ? "- " : "";
     let styleIndent = isKelompok ? "padding-left:40px;" : "padding-left:15px;";
+
+    // Tambahkan tombol hapus kecil (x) di samping nama
     let rowHtml = `<tr>
-        <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent}">
-            <button onclick="hapusDataAbsen('${p.id}')" style="background:none; border:none; color:red; cursor:pointer; margin-right:5px;">[x]</button>
+        <td style="padding:12px; border:1px solid #ddd; background:#fff; font-weight:bold; text-transform:uppercase; white-space:nowrap; ${styleIndent} font-size:14px;">
+            <button onclick="hapusDataAbsen('${p.id}')" style="background:none; border:none; color:#dc3545; cursor:pointer; margin-right:8px; font-weight:bold;">[x]</button>
             ${prefix}${namaTampil}
         </td>`;
+
     const hariLoop = viewHari === 'all' ? [1,2,3,4,5,6] : [viewHari];
     hariLoop.forEach(h => {
         ["SUBUH", "PAGI", "SIANG", "MALAM"].forEach(s => {
             const jam = matrix[p.id][`H${h}_${s}`];
-            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'};">
+            rowHtml += `<td style="padding:10px; border:1px solid #ddd; text-align:center; background:${jam ? '#eef9f1' : 'transparent'}; white-space:nowrap;">
                 ${jam ? `<span style="color:#28a745; font-weight:bold; font-size:13px;">HADIR ${jam}</span>` : '-'}
             </td>`;
         });
