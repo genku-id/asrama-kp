@@ -17,6 +17,7 @@ const strukturOrganisasi = {
 
 let html5QrCode;
 let sedangProses = false; 
+let modeKameraSekarang = "user"; 
 
 // --- LOGIN ---
 window.showLoginPanitia = () => {
@@ -84,29 +85,61 @@ window.simpanSesiLaluScan = () => {
 };
 
 // --- SCANNER ---
+// --- SCANNER DENGAN FITUR GANTI KAMERA ---
 window.mulaiScanner = () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
+    
+    // Setup area tombol di dalam div reader
+    const readerElem = document.getElementById('reader');
+    readerElem.innerHTML = `
+        <div style="position:absolute; top:15px; right:15px; z-index:999;">
+            <button onclick="pindahKamera()" style="background:rgba(0,0,0,0.6); color:white; border:2px solid white; padding:10px; border-radius:50%; width:50px; height:50px; font-size:20px; cursor:pointer; display:flex; align-items:center; justify-content:center;">🔄</button>
+        </div>
+    `;
+
     html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "user" }, { fps: 10, qrbox: 250 }, async (txt) => {
-        if (sedangProses) return; 
-        sedangProses = true; 
-        prosesAbsensiOtomatis(txt); 
-    }).catch(e => { 
-        alert("Kamera error!"); 
-        window.stopScanner(); 
+    jalankanKamera();
+};
+
+// Fungsi untuk menyalakan kamera sesuai mode yang dipilih
+const jalankanKamera = () => {
+    html5QrCode.start(
+        { facingMode: modeKameraSekarang }, 
+        { fps: 10, qrbox: 250 }, 
+        async (txt) => {
+            if (sedangProses) return; 
+            sedangProses = true; 
+            prosesAbsensiOtomatis(txt); 
+        }
+    ).catch(e => { 
+        console.error("Kamera Error: ", e);
+        alert("Gagal mengakses kamera. Pastikan izin kamera sudah diberikan.");
     });
+};
+
+// Fungsi untuk pindah posisi kamera
+window.pindahKamera = async () => {
+    if (html5QrCode) {
+        try {
+            await html5QrCode.stop();
+            // Tukar mode
+            modeKameraSekarang = (modeKameraSekarang === "user") ? "environment" : "user";
+            jalankanKamera(); // Nyalakan lagi
+        } catch (e) {
+            console.log("Error saat pindah kamera");
+        }
+    }
 };
 
 window.stopScanner = async () => {
     const scanSec = document.getElementById('scanner-section');
     if (html5QrCode) { 
-        try { await html5QrCode.stop(); } catch (e) { console.log("Kamera sudah mati"); } 
+        try { await html5QrCode.stop(); } catch (e) { } 
     }
     scanSec.classList.add('hidden');
     sedangProses = false;
 };
-
 // --- PROSES ABSENSI ---
 window.prosesAbsensiOtomatis = async (isiBarcode) => {
     const h = localStorage.getItem('activeHari');
