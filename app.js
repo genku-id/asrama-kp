@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import { 
-    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where, orderBy 
+    collection, getDoc, doc, setDoc, updateDoc, serverTimestamp, query, getDocs, where, orderBy, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const strukturOrganisasi = {
@@ -177,12 +177,12 @@ window.tampilkanSukses = (identitas, desa, sesi) => {
     }, 3000);
 }
 
-// --- GENERATOR KARTU (KEMBALI KE HITAM PUTIH) ---
+// --- GENERATOR KARTU ---
 window.showHalamanBuatKartu = () => {
     const content = document.getElementById('pendaftar-section');
     content.innerHTML = `
         <div class="card">
-            <h3>Generator Kartu (Hitam Putih Transparan)</h3>
+            <h3>Generator Kartu</h3>
             <select id="select-kategori-kartu">
                 <option value="">-- Pilih Kategori --</option>
                 <option value="DAERAH">PENGURUS DAERAH</option>
@@ -190,7 +190,7 @@ window.showHalamanBuatKartu = () => {
                 <option value="KELOMPOK">KELOMPOK</option>
             </select>
             <div id="sub-pilihan-container" style="margin-top:10px;"></div>
-            <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">GENERATE KONTEN</button>
+            <button id="btn-generate-act" class="primary-btn" style="background:#0056b3; display:none;">GENERATE KARTU</button>
             <button onclick="showDashboardAdmin()" class="primary-btn" style="background:#666;">KEMBALI</button>
         </div>
         <div id="container-kartu-hasil" style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-top:20px;"></div>
@@ -277,8 +277,6 @@ function render2Kartu(container, level, desa, identitas) {
             <button onclick="downloadKartu('${cardId}', '${namaUnik}')" class="primary-btn" style="width:100%; max-width:250px; background:#004080; color:#ffffff; margin-top:15px; padding:12px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px;">⬇️ DOWNLOAD PNG</button>
         `;
         container.appendChild(div);
-
-        // 3. Render Barcode Hitam Transparan
         new QRCode(document.getElementById(`qr-${cardId}`), { 
             text: isiBarcode, 
             width: 160, 
@@ -294,8 +292,8 @@ window.downloadKartu = (elementId, fileName) => {
     const target = document.getElementById(elementId);
     setTimeout(() => {
         html2canvas(target, {
-            scale: 4, // Skala tinggi agar hasil tidak pecah saat di-print
-            backgroundColor: null, // Menghasilkan PNG transparan
+            scale: 4, 
+            backgroundColor: null, 
             useCORS: true
         }).then(canvas => {
             const link = document.createElement('a');
@@ -427,3 +425,38 @@ window.downloadLaporan = () => {
 
 if (localStorage.getItem('isPanitia')) showDashboardAdmin();
 else showLoginPanitia();
+
+window.hapusDataAbsen = async (idDoc) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data absen ini?")) {
+        try {
+            await deleteDoc(doc(db, "absensi_asrama", idDoc));
+            alert("Data berhasil dihapus!");
+            showHalamanRekap(); // Refresh laporan
+        } catch (e) {
+            alert("Gagal menghapus: " + e.message);
+        }
+    }
+};
+
+// --- FUNGSI RESET TOTAL (HAPUS SEMUA DATA EVENT) ---
+window.resetSemuaDataAbsensi = async () => {
+    const pass = prompt("Masukkan Sandi Konfirmasi untuk RESET TOTAL:");
+    if (pass === "123") { 
+        if (confirm("PERINGATAN! Semua data kehadiran akan DIHAPUS PERMANEN. Lanjutkan?")) {
+            try {
+                const q = query(collection(db, "absensi_asrama"));
+                const snap = await getDocs(q);
+                
+                const promises = snap.docs.map(d => deleteDoc(d.ref));
+                await Promise.all(promises);
+                
+                alert("Database Berhasil Dibersihkan! Siap untuk event berikutnya.");
+                showDashboardAdmin();
+            } catch (e) {
+                alert("Gagal reset: " + e.message);
+            }
+        }
+    } else {
+        alert("Sandi Salah. Reset dibatalkan.");
+    }
+};
