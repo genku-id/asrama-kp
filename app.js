@@ -271,7 +271,7 @@ window.shareLaporanWA = async (data) => {
         });
         
         return `
-        <div style="width: 1123px; height: 794px; background: white; padding: 20px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+        <div style="width: 1123px; min-height: 794px; height: auto; background: white; padding: 30px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
             <h2 style="text-align: center; margin-top: 0; margin-bottom: 15px; font-size: 20px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
             <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
                 <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
