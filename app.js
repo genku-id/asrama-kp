@@ -243,8 +243,7 @@ window.shareLaporanWA = async (data) => {
     hiddenContainer.style.width = '1123px';
     hiddenContainer.style.zIndex = '-9999';
     
-    const hal1 = data.slice(0, 31);
-    const hal2 = data.slice(31);
+
     
     const renderTable = (rows, title) => {
         let rowsHtml = '';
@@ -294,42 +293,45 @@ window.shareLaporanWA = async (data) => {
         `;
     };
     
-    hiddenContainer.innerHTML = `
-        <div id="hal-1">${renderTable(hal1, "HALAMAN 1 (Wates - Lendah)")}</div>
-        <div id="hal-2">${renderTable(hal2, "HALAMAN 2 (Lendah - Samigaluh)")}</div>
-    `;
+    const daerahKeys = ["WATES", "PENGASIH", "TEMON", "LENDAH", "SAMIGALUH"];
+    let containerHtml = "";
+    
+    daerahKeys.forEach((daerah, idx) => {
+        const rowsForDaerah = data.filter(r => r.daerah === daerah);
+        containerHtml += `<div id="hal-${idx + 1}">${renderTable(rowsForDaerah, `KECAMATAN ${daerah}`)}</div>`;
+    });
+    
+    hiddenContainer.innerHTML = containerHtml;
     document.body.appendChild(hiddenContainer);
     
     try {
-        const canvas1 = await html2canvas(document.getElementById('hal-1'), { scale: 2, useCORS: true });
-        const canvas2 = await html2canvas(document.getElementById('hal-2'), { scale: 2, useCORS: true });
+        const filesToShare = [];
+        const blobsToDownload = [];
         
-        const blob1 = await new Promise(r => canvas1.toBlob(r, 'image/jpeg', 0.85));
-        const blob2 = await new Promise(r => canvas2.toBlob(r, 'image/jpeg', 0.85));
+        for (let i = 0; i < daerahKeys.length; i++) {
+            const canvas = await html2canvas(document.getElementById(`hal-${i + 1}`), { scale: 2, useCORS: true });
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
+            blobsToDownload.push({ blob: blob, name: `Laporan_Asrama_${daerahKeys[i]}.jpg` });
+            filesToShare.push(new File([blob], `Laporan_Asrama_${daerahKeys[i]}.jpg`, { type: 'image/jpeg' }));
+        }
         
-        const file1 = new File([blob1], 'Laporan_Asrama_Hal_1.jpg', { type: 'image/jpeg' });
-        const file2 = new File([blob2], 'Laporan_Asrama_Hal_2.jpg', { type: 'image/jpeg' });
-        
-        if (navigator.canShare && navigator.canShare({ files: [file1, file2] })) {
+        if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
             await navigator.share({
                 title: 'Laporan Rekap Asrama',
-                text: 'Berikut adalah laporan kehadiran 6 Sesi per kelompok.',
-                files: [file1, file2]
+                text: 'Berikut adalah laporan kehadiran per desa/kecamatan.',
+                files: filesToShare
             });
         } else {
-            const link1 = document.createElement('a');
-            link1.href = URL.createObjectURL(blob1);
-            link1.download = 'Laporan_Asrama_Hal_1.jpg';
-            link1.click();
+            blobsToDownload.forEach((item, index) => {
+                setTimeout(() => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(item.blob);
+                    link.download = item.name;
+                    link.click();
+                }, index * 500); // Jeda setengah detik tiap download agar tidak diblokir browser
+            });
             
-            setTimeout(() => {
-                const link2 = document.createElement('a');
-                link2.href = URL.createObjectURL(blob2);
-                link2.download = 'Laporan_Asrama_Hal_2.jpg';
-                link2.click();
-            }, 500);
-            
-            alert("Perangkat Anda tidak mendukung fitur Share langsung. Kedua gambar laporan telah otomatis diunduh ke galeri/HP Anda.");
+            alert("Perangkat Anda tidak mendukung fitur Share langsung. Ke-5 gambar laporan telah otomatis diunduh ke galeri/HP Anda.");
         }
     } catch (e) {
         console.error(e);
