@@ -401,25 +401,44 @@ window.generateKartuSemuaKelompok = async () => {
             statusText.innerText = `Memproses Kartu (${count}/62)...`;
         }
     }
-    statusText.innerText = "62 QR Code Siap Dibagikan!";
-    document.getElementById('btn-share-kartu').classList.remove('hidden');
+    
+    statusText.innerText = "Membungkus ke dalam ZIP (Mohon tunggu)...";
+    try {
+        const zip = new JSZip();
+        for (const file of window.generatedKartuFiles) {
+            zip.file(file.name, file);
+        }
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        window.generatedZipFile = new File([zipBlob], "62_Kartu_QR_Asrama.zip", { type: "application/zip" });
+        
+        statusText.innerText = "62 QR Code Siap Dibagikan!";
+        document.getElementById('btn-share-kartu').classList.remove('hidden');
+    } catch (e) {
+        console.error(e);
+        statusText.innerText = "Gagal membuat ZIP.";
+    }
 };
 
 window.shareSemuaKartu = async () => {
     try {
-        if (!window.generatedKartuFiles || window.generatedKartuFiles.length === 0) {
-            alert("Kartu belum selesai diproses.");
+        if (!window.generatedZipFile) {
+            alert("File ZIP belum selesai diproses.");
             return;
         }
         
-        if (navigator.canShare && navigator.canShare({ files: window.generatedKartuFiles })) {
+        if (navigator.canShare && navigator.canShare({ files: [window.generatedZipFile] })) {
             await navigator.share({
-                title: 'Kartu QR Asrama',
-                text: 'Berikut adalah 62 Kartu QR tanpa background.',
-                files: window.generatedKartuFiles
+                title: '62 Kartu QR Asrama (ZIP)',
+                text: 'Berikut adalah kumpulan 62 Kartu QR (di-zip agar mudah dikirim).',
+                files: [window.generatedZipFile]
             });
         } else {
-            alert("Perangkat Anda mungkin tidak mendukung Share multi-file (62 gambar sekaligus). Silakan simpan manual gambar-gambar di bawah.");
+            // Jika tidak support Web Share untuk zip, otomatis download
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(window.generatedZipFile);
+            a.download = "62_Kartu_QR_Asrama.zip";
+            a.click();
+            alert("Perangkat Anda tidak mendukung fitur Share langsung untuk format ZIP, file telah di-download otomatis.");
         }
     } catch (e) {
         console.error(e);
