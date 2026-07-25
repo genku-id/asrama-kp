@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import { 
-    collection, getDoc, doc, setDoc, serverTimestamp, query, getDocs, where, orderBy
+    collection, getDoc, doc, setDoc, serverTimestamp, query, getDocs, where, orderBy, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const WILAYAH = {
@@ -235,3 +235,26 @@ function renderKartuSingle(container, daerah, kel, suffix) {
         });
     }, 200);
 }
+
+// === RESET DATABASE LOGIC ===
+window.resetSemuaDataAbsensi = async () => {
+    const pass = prompt("Masukkan Sandi Konfirmasi (123) untuk RESET TOTAL:");
+    if (pass === "123") { 
+        if (confirm("PERINGATAN! Semua data kehadiran akan DIHAPUS PERMANEN. Lanjutkan?")) {
+            try {
+                const q = query(collection(db, "absensi_asrama"));
+                const snap = await getDocs(q);
+                
+                const promises = snap.docs.map(d => deleteDoc(d.ref));
+                await Promise.all(promises);
+                
+                alert("Database Berhasil Dibersihkan! Siap untuk event berikutnya.");
+                if(window.alpineApp) window.alpineApp.fetchRekap();
+            } catch (e) {
+                alert("Gagal reset: " + e.message);
+            }
+        }
+    } else {
+        alert("Sandi Salah. Reset dibatalkan.");
+    }
+};
