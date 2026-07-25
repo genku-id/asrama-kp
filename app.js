@@ -229,6 +229,117 @@ window.fetchRekapData = async () => {
     }
 };
 
+window.shareLaporanWA = async (data) => {
+    if (!data || data.length === 0) return alert("Belum ada data.");
+    
+    const btn = document.getElementById('btn-share');
+    const oldText = btn.innerHTML;
+    btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> MEMPROSES GAMBAR...`;
+    
+    const hiddenContainer = document.createElement('div');
+    hiddenContainer.style.position = 'fixed';
+    hiddenContainer.style.top = '-9999px';
+    hiddenContainer.style.left = '-9999px';
+    hiddenContainer.style.width = '1123px';
+    hiddenContainer.style.zIndex = '-9999';
+    
+    const hal1 = data.slice(0, 31);
+    const hal2 = data.slice(31);
+    
+    const renderTable = (rows, title) => {
+        let rowsHtml = '';
+        rows.forEach((r, i) => {
+            const bg = i % 2 === 0 ? 'background-color: white;' : 'background-color: #f8fafc;';
+            const s1 = r.sesi1 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s2 = r.sesi2 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s3 = r.sesi3 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s4 = r.sesi4 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s5 = r.sesi5 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s6 = r.sesi6 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            
+            rowsHtml += `
+            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 13px;">
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${r.sesi1}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${r.sesi2}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${r.sesi3}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${r.sesi4}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${r.sesi5}</td>
+                <td style="padding: 5px 12px; text-align: center; font-weight: bold; ${s6}">${r.sesi6}</td>
+            </tr>`;
+        });
+        
+        return `
+        <div style="width: 1123px; height: 794px; background: white; padding: 20px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 15px; font-size: 20px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
+                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
+                    <tr>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Desa / Wilayah</th>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Nama Kelompok</th>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 1</th>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 2</th>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 3</th>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 4</th>
+                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 5</th>
+                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 6</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+        </div>
+        `;
+    };
+    
+    hiddenContainer.innerHTML = `
+        <div id="hal-1">${renderTable(hal1, "HALAMAN 1 (Wates - Lendah)")}</div>
+        <div id="hal-2">${renderTable(hal2, "HALAMAN 2 (Lendah - Samigaluh)")}</div>
+    `;
+    document.body.appendChild(hiddenContainer);
+    
+    try {
+        const canvas1 = await html2canvas(document.getElementById('hal-1'), { scale: 2, useCORS: true });
+        const canvas2 = await html2canvas(document.getElementById('hal-2'), { scale: 2, useCORS: true });
+        
+        const blob1 = await new Promise(r => canvas1.toBlob(r, 'image/jpeg', 0.85));
+        const blob2 = await new Promise(r => canvas2.toBlob(r, 'image/jpeg', 0.85));
+        
+        const file1 = new File([blob1], 'Laporan_Asrama_Hal_1.jpg', { type: 'image/jpeg' });
+        const file2 = new File([blob2], 'Laporan_Asrama_Hal_2.jpg', { type: 'image/jpeg' });
+        
+        if (navigator.canShare && navigator.canShare({ files: [file1, file2] })) {
+            await navigator.share({
+                title: 'Laporan Rekap Asrama',
+                text: 'Berikut adalah laporan kehadiran 6 Sesi per kelompok.',
+                files: [file1, file2]
+            });
+        } else {
+            const link1 = document.createElement('a');
+            link1.href = URL.createObjectURL(blob1);
+            link1.download = 'Laporan_Asrama_Hal_1.jpg';
+            link1.click();
+            
+            setTimeout(() => {
+                const link2 = document.createElement('a');
+                link2.href = URL.createObjectURL(blob2);
+                link2.download = 'Laporan_Asrama_Hal_2.jpg';
+                link2.click();
+            }, 500);
+            
+            alert("Perangkat Anda tidak mendukung fitur Share langsung. Kedua gambar laporan telah otomatis diunduh ke galeri/HP Anda.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Gagal memproses gambar. Pastikan memori cukup.");
+    } finally {
+        document.body.removeChild(hiddenContainer);
+        btn.innerHTML = oldText;
+    }
+};
+
 // === GENERATOR KARTU LOGIC ===
 window.generateKartuSemuaKelompok = async () => {
     const container = document.getElementById('tempat-kartu');
