@@ -191,28 +191,38 @@ window.tutupSukses = () => {
 };
 
 // === REKAP LOGIC ===
-window.fetchRekapData = async (filterSesi) => {
+window.fetchRekapData = async () => {
     try {
-        let q;
-        if (filterSesi) {
-            q = query(collection(db, "absensi_asrama"), where("sesi", "==", filterSesi), orderBy("waktu_absen", "desc"));
-        } else {
-            q = query(collection(db, "absensi_asrama"), orderBy("waktu_absen", "desc"));
+        // Buat kerangka matriks 62 kelompok
+        const matrix = [];
+        for (const daerah in WILAYAH) {
+            const kelompoks = WILAYAH[daerah];
+            for (const kel of kelompoks) {
+                matrix.push({ daerah: daerah, nama: `${kel} A`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-' });
+                matrix.push({ daerah: daerah, nama: `${kel} B`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-' });
+            }
         }
-        
+
+        // Ambil semua data absensi
+        const q = query(collection(db, "absensi_asrama"));
         const snap = await getDocs(q);
-        const data = [];
+        
         snap.forEach(docSnap => {
             const d = docSnap.data();
-            const time = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : '-';
-            data.push({
-                id: d.id,
-                nama: d.nama,
-                sesi: d.sesi,
-                waktu: time
-            });
+            const time = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : 'V';
+            
+            const row = matrix.find(r => r.nama === d.nama);
+            if (row) {
+                if (d.sesi === "Sesi 1") row.sesi1 = time;
+                else if (d.sesi === "Sesi 2") row.sesi2 = time;
+                else if (d.sesi === "Sesi 3") row.sesi3 = time;
+                else if (d.sesi === "Sesi 4") row.sesi4 = time;
+                else if (d.sesi === "Sesi 5") row.sesi5 = time;
+                else if (d.sesi === "Sesi 6") row.sesi6 = time;
+            }
         });
-        return data;
+        
+        return matrix;
     } catch (e) {
         console.error("Gagal mengambil rekap:", e);
         return [];

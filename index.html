@@ -20,7 +20,7 @@
             body, .mobile-container { overflow: visible !important; height: auto !important; background: white !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
             header, nav, button, .print-hide { display: none !important; }
             main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
-            @page { margin: 10mm; }
+            @page { margin: 10mm; size: landscape; }
         }
         
         /* CSS to support HTML5-QRCode */
@@ -105,40 +105,45 @@
                 </template>
                 <template x-if="isPanitia">
                     <div class="space-y-4">
-                        <div class="flex gap-2">
-                            <select x-model="filterSesi" @change="fetchRekap()" class="flex-grow p-2.5 rounded-xl border bg-white text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                <option value="">Semua Sesi</option>
-                                <option value="Sesi 1">Sesi 1</option>
-                                <option value="Sesi 2">Sesi 2</option>
-                                <option value="Sesi 3">Sesi 3</option>
-                                <option value="Sesi 4">Sesi 4</option>
-                                <option value="Sesi 5">Sesi 5</option>
-                                <option value="Sesi 6">Sesi 6</option>
-                            </select>
-                            <button @click="fetchRekap()" class="p-2.5 bg-gray-800 text-white rounded-xl shadow-md hover:bg-gray-900 active:scale-95 transition-all">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <div class="flex gap-2 print-hide">
+                            <button @click="fetchRekap()" class="flex-grow p-3 bg-gray-800 text-white rounded-xl shadow-md hover:bg-gray-900 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                REFRESH DATA
+                            </button>
+                            <button onclick="window.print()" class="flex-grow p-3 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                                PRINT / SHARE
                             </button>
                         </div>
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[65vh]">
-                            <div class="bg-gray-50 px-4 py-3 border-b flex justify-between font-bold text-[11px] text-gray-500 uppercase tracking-wider shrink-0">
-                                <span>Total Kehadiran:</span>
-                                <span class="text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full" x-text="rekapData.length"></span>
-                            </div>
-                            <div class="divide-y divide-gray-100 overflow-y-auto flex-grow">
-                                <template x-for="(absen, index) in rekapData" :key="index">
-                                    <div class="p-3.5 text-sm flex flex-col gap-1 hover:bg-gray-50 transition-colors">
-                                        <div class="font-bold text-gray-800" x-text="absen.nama"></div>
-                                        <div class="flex justify-between text-xs text-gray-500 font-medium">
-                                            <span class="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded" x-text="absen.sesi"></span>
-                                            <span x-text="absen.waktu"></span>
-                                        </div>
-                                    </div>
-                                </template>
-                                <div x-show="rekapData.length === 0" class="p-8 text-center text-gray-400 text-sm flex flex-col items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-                                    <span>Belum ada data kehadiran.</span>
-                                </div>
-                            </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto print:overflow-visible print:border-none print:shadow-none mb-10">
+                            <table class="w-full text-left text-[10px] sm:text-xs whitespace-nowrap">
+                                <thead class="bg-indigo-50 text-indigo-800 border-b border-indigo-100">
+                                    <tr>
+                                        <th class="px-2 py-2 border-r border-indigo-100">Desa</th>
+                                        <th class="px-2 py-2 border-r border-indigo-100">Kelompok</th>
+                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 1</th>
+                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 2</th>
+                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 3</th>
+                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 4</th>
+                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 5</th>
+                                        <th class="px-1.5 py-2 text-center">Sesi 6</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <template x-for="(row, index) in rekapData" :key="index">
+                                        <tr class="hover:bg-blue-50 transition-colors" :class="(index % 2 === 0) ? 'bg-white' : 'bg-gray-50'">
+                                            <td class="px-2 py-1.5 border-r border-gray-100" x-text="row.daerah"></td>
+                                            <td class="px-2 py-1.5 border-r border-gray-100 font-bold text-gray-800" x-text="row.nama"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi1 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi1"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi2 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi2"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi3 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi3"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi4 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi4"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi5 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi5"></td>
+                                            <td class="px-1.5 py-1.5 text-center font-medium" :class="row.sesi6 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi6"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
                         <button @click="resetData()" class="w-full mt-4 p-3 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-bold text-xs rounded-xl transition-colors flex justify-center items-center gap-2 print-hide cursor-pointer active:scale-95 z-50 relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -235,7 +240,7 @@
 
     </div>
 
-    <script type="module" src="app.js?v=8"></script>
+    <script type="module" src="app.js?v=9"></script>
     <script>
         function asramaApp() {
             return {
