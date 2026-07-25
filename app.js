@@ -298,7 +298,7 @@ window.shareLaporanWA = async (data) => {
     
     daerahKeys.forEach((daerah, idx) => {
         const rowsForDaerah = data.filter(r => r.daerah === daerah);
-        containerHtml += `<div id="hal-${idx + 1}">${renderTable(rowsForDaerah, `KECAMATAN ${daerah}`)}</div>`;
+        containerHtml += `<div id="hal-${idx + 1}">${renderTable(rowsForDaerah, `PC ${daerah}`)}</div>`;
     });
     
     hiddenContainer.innerHTML = containerHtml;
