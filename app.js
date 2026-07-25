@@ -348,10 +348,10 @@ window.generateKartuSemuaKelompok = async () => {
     container.innerHTML = `
         <div class="w-full flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-xl border print-hide">
             <span class="font-bold text-gray-700" id="status-generator">Memproses Kartu (0/62)...</span>
-            <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-lg font-bold text-sm shadow">PRINT HALAMAN INI</button>
+            <button id="btn-share-kartu" onclick="window.shareSemuaKartu()" class="px-4 py-2 bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg font-bold text-sm shadow hidden">SHARE 62 KARTU</button>
         </div>
-        <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini berupa GAMBAR utuh. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau Drag and Drop langsung ke WhatsApp.</p>
-        <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full print:grid-cols-2 print:gap-6"></div>
+        <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini berupa GAMBAR transparan. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau klik Share untuk membagikan semuanya.</p>
+        <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full"></div>
     `;
     
     const grid = document.getElementById('grid-kartu');
@@ -372,7 +372,42 @@ window.generateKartuSemuaKelompok = async () => {
             statusText.innerText = `Memproses Kartu (${count}/62)...`;
         }
     }
-    statusText.innerText = "62 QR Code Siap Cetak!";
+    statusText.innerText = "62 QR Code Siap Dibagikan!";
+    document.getElementById('btn-share-kartu').classList.remove('hidden');
+};
+
+window.shareSemuaKartu = async () => {
+    const btn = document.getElementById('btn-share-kartu');
+    const oldText = btn.innerText;
+    btn.innerText = "MENYIAPKAN...";
+    
+    try {
+        const grid = document.getElementById('grid-kartu');
+        const imgs = grid.querySelectorAll('img');
+        const filesToShare = [];
+        
+        for (let i = 0; i < imgs.length; i++) {
+            const dataUrl = imgs[i].src;
+            const res = await fetch(dataUrl);
+            const blob = await res.blob();
+            filesToShare.push(new File([blob], `Kartu_QR_${i+1}.png`, { type: 'image/png' }));
+        }
+        
+        if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
+            await navigator.share({
+                title: 'Kartu QR Asrama',
+                text: 'Berikut adalah 62 Kartu QR tanpa background.',
+                files: filesToShare
+            });
+        } else {
+            alert("Perangkat Anda mungkin tidak mendukung Share multi-file (62 gambar sekaligus). Silakan simpan manual gambar-gambar di bawah.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Gagal membagikan kartu. Error: " + e.message);
+    } finally {
+        btn.innerText = oldText;
+    }
 };
 
 function renderKartuSingle(container, daerah, kel, suffix) {
@@ -383,7 +418,7 @@ function renderKartuSingle(container, daerah, kel, suffix) {
         
         // Container sementara untuk di render menjadi canvas
         const tempWrapper = document.createElement('div');
-        tempWrapper.className = "bg-white border-[3px] border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center";
+        tempWrapper.className = "p-2 flex flex-col items-center justify-center text-center";
         tempWrapper.style.position = "fixed";
         tempWrapper.style.top = "-9999px"; 
         tempWrapper.style.width = "200px";
@@ -412,7 +447,7 @@ function renderKartuSingle(container, daerah, kel, suffix) {
             html2canvas(tempWrapper, { scale: 3, backgroundColor: null, logging: false }).then(canvas => {
                 const finalImg = document.createElement('img');
                 finalImg.src = canvas.toDataURL("image/png");
-                finalImg.className = "w-full rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-shadow print:shadow-none print:break-inside-avoid print:border print:border-black print:rounded-none";
+                finalImg.className = "w-full rounded-xl shadow-[0_0_10px_rgba(0,0,0,0.05)] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZmZmIi8+PHJlY3Qgd2lkdGg9IjUiIGhlaWdodD0iNSIgZmlsbD0iI2YwZjBmMCIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiIGZpbGw9IiNmMGYwZjAiLz48L3N2Zz4=')] hover:shadow-md cursor-pointer transition-shadow";
                 finalImg.title = "Tap tahan / Klik Kanan untuk Salin Gambar";
                 
                 container.appendChild(finalImg);
