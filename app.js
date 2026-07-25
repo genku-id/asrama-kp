@@ -91,8 +91,12 @@ const startKamera = () => {
         async (decodedText) => {
             if (sedangProses) return; 
             sedangProses = true; 
-            if (html5QrCode) html5QrCode.pause();
-            await prosesAbsensiOtomatis(decodedText); 
+            if (html5QrCode) html5QrCode.pause(); // Jeda kamera supaya layar ijo (sukses scan) terlihat
+
+            // Beri waktu 1 detik sebelum memproses dan memunculkan overlay
+            setTimeout(async () => {
+                await prosesAbsensiOtomatis(decodedText); 
+            }, 1000);
         }
     ).then(() => {
         isKameraAktif = true;
