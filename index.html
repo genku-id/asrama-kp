@@ -11,8 +11,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: "Inter", sans-serif; overflow: hidden; background-color: #f3f4f6;}
-        .mobile-container { max-width: 480px; margin: 0 auto; height: 100dvh; background: #fbfbfa; overflow: hidden; position: relative; display: flex; flex-direction: column;}
+        body { font-family: "Inter", sans-serif; background-color: #f3f4f6;}
+        .mobile-container { max-width: 480px; margin: 0 auto; background: #fbfbfa; position: relative; }
         [x-cloak] { display: none !important; }
 
         @media print {
@@ -27,8 +27,8 @@
         #reader video { object-fit: cover; }
     </style>
 </head>
-<body class="antialiased">
-    <div class="mobile-container shadow-2xl" x-data="asramaApp()">
+<body class="antialiased fixed inset-0 overflow-hidden w-full h-full bg-gray-100 flex justify-center">
+    <div class="mobile-container shadow-2xl w-full h-full max-w-md bg-gray-50 flex flex-col relative overflow-hidden" x-data="asramaApp()">
         
         <!-- HEADER -->
         <header class="p-4 border-b bg-white z-10 flex justify-between items-center shadow-sm shrink-0">
