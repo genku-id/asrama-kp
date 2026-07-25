@@ -169,11 +169,12 @@ window.fetchRekapData = async (filterSesi) => {
 window.generateKartuSemuaKelompok = () => {
     const container = document.getElementById('tempat-kartu');
     container.innerHTML = `
-        <div class="w-full flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-xl border">
+        <div class="w-full flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-xl border print-hide">
             <span class="font-bold text-gray-700">62 QR Code Siap Cetak</span>
-            <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-sm shadow">PRINT HALAMAN INI</button>
+            <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-lg font-bold text-sm shadow">PRINT HALAMAN INI</button>
         </div>
-        <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full"></div>
+        <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini sudah berupa GAMBAR utuh. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau Drag and Drop langsung ke WhatsApp.</p>
+        <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full print:grid-cols-3 print:gap-2"></div>
     `;
     
     const grid = document.getElementById('grid-kartu');
@@ -194,25 +195,42 @@ function renderKartuSingle(container, daerah, kel, suffix) {
     const isiBarcode = `KELOMPOK|${daerah}|${namaPeserta}`;
     const cardId = `qr-${Math.random().toString(36).substr(2, 9)}`;
     
-    const wrapper = document.createElement('div');
-    wrapper.className = "bg-white border-2 border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center text-center print:border-black print:break-inside-avoid";
+    // Container sementara untuk di render menjadi canvas
+    const tempWrapper = document.createElement('div');
+    tempWrapper.className = "bg-white border-[3px] border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center";
+    tempWrapper.style.position = "absolute";
+    tempWrapper.style.left = "-9999px"; 
+    tempWrapper.style.width = "200px";
     
-    wrapper.innerHTML = `
-        <div class="font-bold text-[10px] text-gray-500 mb-1 uppercase tracking-wider">${daerah}</div>
-        <div id="${cardId}" class="mb-3"></div>
-        <div class="bg-blue-600 print:bg-black text-white w-full py-1.5 rounded font-black text-sm uppercase tracking-wide truncate px-2" title="${namaPeserta}">
+    tempWrapper.innerHTML = `
+        <div class="font-bold text-[11px] text-gray-600 mb-2 uppercase tracking-widest">${daerah}</div>
+        <div id="${cardId}" class="mb-4 bg-white p-1 rounded-lg"></div>
+        <div class="bg-blue-600 text-white w-full py-2 rounded-lg font-black text-sm uppercase tracking-wide px-2 leading-tight" style="word-wrap: break-word;">
             ${namaPeserta}
         </div>
     `;
     
-    container.appendChild(wrapper);
+    document.body.appendChild(tempWrapper);
     
     new QRCode(document.getElementById(cardId), { 
         text: isiBarcode, 
-        width: 120, 
-        height: 120,
+        width: 140, 
+        height: 140,
         colorDark : "#000000",
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.H
     });
+    
+    // Convert to Image
+    setTimeout(() => {
+        html2canvas(tempWrapper, { scale: 3, backgroundColor: null }).then(canvas => {
+            const finalImg = document.createElement('img');
+            finalImg.src = canvas.toDataURL("image/png");
+            finalImg.className = "w-full rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-shadow print:shadow-none print:break-inside-avoid";
+            finalImg.title = "Tap tahan / Klik Kanan untuk Salin Gambar";
+            
+            container.appendChild(finalImg);
+            tempWrapper.remove();
+        });
+    }, 200);
 }

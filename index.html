@@ -14,6 +14,13 @@
         body { font-family: "Inter", sans-serif; overflow: hidden; background-color: #f3f4f6;}
         .mobile-container { max-width: 480px; margin: 0 auto; height: 100dvh; background: #fbfbfa; overflow-y: auto; position: relative;}
         [x-cloak] { display: none !important; }
+
+        @media print {
+            body, .mobile-container { overflow: visible !important; height: auto !important; background: white !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+            header, nav, button, .print-hide { display: none !important; }
+            main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+            @page { margin: 10mm; }
+        }
         
         /* CSS to support HTML5-QRCode */
         #reader { width: 100%; }
