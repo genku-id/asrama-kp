@@ -384,6 +384,8 @@ window.generateKartuSemuaKelompok = async () => {
     const grid = document.getElementById('grid-kartu');
     const statusText = document.getElementById('status-generator');
     
+    window.generatedKartuFiles = [];
+    
     let count = 0;
     // Looping 31 Kelompok
     for (const daerah in WILAYAH) {
@@ -404,27 +406,17 @@ window.generateKartuSemuaKelompok = async () => {
 };
 
 window.shareSemuaKartu = async () => {
-    const btn = document.getElementById('btn-share-kartu');
-    const oldText = btn.innerText;
-    btn.innerText = "MENYIAPKAN...";
-    
     try {
-        const grid = document.getElementById('grid-kartu');
-        const imgs = grid.querySelectorAll('img');
-        const filesToShare = [];
-        
-        for (let i = 0; i < imgs.length; i++) {
-            const dataUrl = imgs[i].src;
-            const res = await fetch(dataUrl);
-            const blob = await res.blob();
-            filesToShare.push(new File([blob], `Kartu_QR_${i+1}.png`, { type: 'image/png' }));
+        if (!window.generatedKartuFiles || window.generatedKartuFiles.length === 0) {
+            alert("Kartu belum selesai diproses.");
+            return;
         }
         
-        if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
+        if (navigator.canShare && navigator.canShare({ files: window.generatedKartuFiles })) {
             await navigator.share({
                 title: 'Kartu QR Asrama',
                 text: 'Berikut adalah 62 Kartu QR tanpa background.',
-                files: filesToShare
+                files: window.generatedKartuFiles
             });
         } else {
             alert("Perangkat Anda mungkin tidak mendukung Share multi-file (62 gambar sekaligus). Silakan simpan manual gambar-gambar di bawah.");
@@ -432,8 +424,6 @@ window.shareSemuaKartu = async () => {
     } catch (e) {
         console.error(e);
         alert("Gagal membagikan kartu. Error: " + e.message);
-    } finally {
-        btn.innerText = oldText;
     }
 };
 
@@ -479,7 +469,13 @@ function renderKartuSingle(container, daerah, kel, suffix) {
                 
                 container.appendChild(finalImg);
                 tempWrapper.remove();
-                resolve();
+                
+                canvas.toBlob(blob => {
+                    if (window.generatedKartuFiles) {
+                        window.generatedKartuFiles.push(new File([blob], `Kartu_${daerah}_${kel}_${suffix}.png`, { type: 'image/png' }));
+                    }
+                    resolve();
+                }, 'image/png');
             }).catch(e => {
                 console.error("html2canvas error:", e);
                 tempWrapper.remove();
