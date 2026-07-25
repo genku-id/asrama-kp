@@ -13,25 +13,51 @@ const WILAYAH = {
 
 let html5QrCode = null;
 let sedangProses = false;
-let modeKameraSekarang = "environment"; // Default to back camera for easier scanning
+let cameraList = [];
+let currentCameraIndex = 0;
+let isKameraAktif = false;
 
 // === SCANNER LOGIC ===
-window.jalankanScannerApp = () => {
+window.jalankanScannerApp = async () => {
     const scanSec = document.getElementById('scanner-section');
     scanSec.classList.remove('hidden');
     scanSec.classList.add('flex');
     
-    document.getElementById('scanner-status').innerText = "Memulai Kamera...";
+    document.getElementById('scanner-status').innerText = "Mencari Kamera...";
 
-    // Tombol Pindah Kamera
+    if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+    }
+
+    // Ambil daftar semua kamera fisik di HP
+    try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length > 0) {
+            cameraList = devices;
+            // Coba cari kamera belakang (main camera) secara default. Biasanya ada kata "back" atau "0".
+            // Kita set index 0 dulu, jika ultra wide, user bisa klik pindah kamera.
+            let backCamIndex = devices.findIndex(c => c.label.toLowerCase().includes('back') && !c.label.toLowerCase().includes('ultra'));
+            if(backCamIndex === -1) backCamIndex = devices.findIndex(c => c.label.toLowerCase().includes('back'));
+            
+            if (backCamIndex !== -1) currentCameraIndex = backCamIndex;
+            else currentCameraIndex = 0;
+        }
+    } catch (err) {
+        console.warn("Gagal mendapatkan daftar kamera spesifik, menggunakan mode default.", err);
+    }
+
+    // Tombol Pindah Kamera (Ganti fungsi untuk me-looping semua kamera)
     const btnPindah = document.getElementById('btn-pindah-kamera');
     btnPindah.onclick = async (e) => {
         e.preventDefault();
+        if(cameraList.length <= 1) return; // Jika cuma 1 kamera, tidak usah ganti
+
         document.getElementById('scanner-status').innerText = "Menukar Kamera...";
-        if (html5QrCode) {
+        if (html5QrCode && isKameraAktif) {
             try {
                 await html5QrCode.stop();
-                modeKameraSekarang = (modeKameraSekarang === "environment") ? "user" : "environment";
+                isKameraAktif = false;
+                currentCameraIndex = (currentCameraIndex + 1) % cameraList.length;
                 startKamera();
             } catch (err) {
                 console.error("Gagal menukar kamera:", err);
@@ -39,15 +65,17 @@ window.jalankanScannerApp = () => {
         }
     };
 
-    if (!html5QrCode) {
-        html5QrCode = new Html5Qrcode("reader");
-    }
     startKamera();
 };
 
 const startKamera = () => {
+    let cameraConfig = { facingMode: "environment" }; // Fallback
+    if (cameraList && cameraList.length > 0) {
+        cameraConfig = { deviceId: { exact: cameraList[currentCameraIndex].id } };
+    }
+
     html5QrCode.start(
-        { facingMode: modeKameraSekarang }, 
+        cameraConfig, 
         { fps: 10, qrbox: { width: 250, height: 250 } }, 
         async (decodedText) => {
             if (sedangProses) return; 
@@ -56,9 +84,12 @@ const startKamera = () => {
             await prosesAbsensiOtomatis(decodedText); 
         }
     ).then(() => {
-        document.getElementById('scanner-status').innerText = "Kamera Aktif";
+        isKameraAktif = true;
+        let camName = cameraList.length > 0 ? cameraList[currentCameraIndex].label : "Kamera Aktif";
+        if(camName.length > 20) camName = camName.substring(0, 17) + '...'; // Potong nama agar tidak terlalu panjang
+        document.getElementById('scanner-status').innerText = camName;
     }).catch(err => { 
-        alert("Kamera Error: Pastikan izin kamera diizinkan di browser.");
+        alert("Kamera Error / Izin Ditolak.");
         window.stopScanner();
     });
 };
