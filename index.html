@@ -202,7 +202,10 @@
                 </button>
             </div>
             
-            <div id="reader" class="w-full h-full object-cover flex items-center justify-center"></div>
+            <div class="w-full max-w-sm px-8 flex flex-col items-center justify-center h-full mx-auto relative z-0">
+                <div id="reader" class="w-full aspect-square rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] border-4 border-gray-700 bg-gray-900"></div>
+                <p class="text-gray-400 text-xs mt-8 text-center px-4">Posisikan QR Code di dalam kotak.</p>
+            </div>
             
             <div class="absolute bottom-10 w-full flex justify-center z-10">
                 <button onclick="window.stopScanner()" class="px-8 py-3.5 bg-red-600 bg-opacity-90 hover:bg-red-700 text-white font-bold text-sm tracking-wider rounded-full shadow-[0_4px_20px_rgba(220,38,38,0.5)] backdrop-blur-sm transition-transform active:scale-95 flex items-center gap-2">
@@ -229,7 +232,7 @@
 
     </div>
 
-    <script type="module" src="app.js?v=3"></script>
+    <script type="module" src="app.js?v=4"></script>
     <script>
         function asramaApp() {
             return {
