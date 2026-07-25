@@ -511,3 +511,34 @@ window.resetSemuaDataAbsensi = async () => {
         alert("Sandi Salah. Reset dibatalkan.");
     }
 };
+
+// === PHYSICAL BARCODE SCANNER LOGIC ===
+let barcodeBuffer = "";
+let barcodeTimer = null;
+
+document.addEventListener("keydown", (e) => {
+    if (!window.alpineApp || !window.alpineApp.isPanitia) return;
+    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
+
+    if (e.key === "Enter") {
+        if (barcodeBuffer.length > 5) { 
+            if (!sedangProses) {
+                sedangProses = true;
+                setTimeout(() => {
+                    prosesAbsensiOtomatis(barcodeBuffer);
+                }, 100);
+            }
+        }
+        barcodeBuffer = "";
+        clearTimeout(barcodeTimer);
+        return;
+    }
+
+    if (e.key.length === 1) {
+        barcodeBuffer += e.key;
+        clearTimeout(barcodeTimer);
+        barcodeTimer = setTimeout(() => {
+            barcodeBuffer = "";
+        }, 100);
+    }
+});
