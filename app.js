@@ -166,73 +166,88 @@ window.fetchRekapData = async (filterSesi) => {
 };
 
 // === GENERATOR KARTU LOGIC ===
-window.generateKartuSemuaKelompok = () => {
+window.generateKartuSemuaKelompok = async () => {
     const container = document.getElementById('tempat-kartu');
     container.innerHTML = `
         <div class="w-full flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-xl border print-hide">
-            <span class="font-bold text-gray-700">62 QR Code Siap Cetak</span>
+            <span class="font-bold text-gray-700" id="status-generator">Memproses Kartu (0/62)...</span>
             <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-lg font-bold text-sm shadow">PRINT HALAMAN INI</button>
         </div>
-        <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini sudah berupa GAMBAR utuh. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau Drag and Drop langsung ke WhatsApp.</p>
+        <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini berupa GAMBAR utuh. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau Drag and Drop langsung ke WhatsApp.</p>
         <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full print:grid-cols-3 print:gap-2"></div>
     `;
     
     const grid = document.getElementById('grid-kartu');
+    const statusText = document.getElementById('status-generator');
     
+    let count = 0;
     // Looping 31 Kelompok
     for (const daerah in WILAYAH) {
         const kelompoks = WILAYAH[daerah];
-        kelompoks.forEach(kel => {
+        for (const kel of kelompoks) {
             // Tiap kelompok dibuat 2 (A dan B)
-            renderKartuSingle(grid, daerah, kel, "A");
-            renderKartuSingle(grid, daerah, kel, "B");
-        });
+            await renderKartuSingle(grid, daerah, kel, "A");
+            count++;
+            statusText.innerText = `Memproses Kartu (${count}/62)...`;
+            
+            await renderKartuSingle(grid, daerah, kel, "B");
+            count++;
+            statusText.innerText = `Memproses Kartu (${count}/62)...`;
+        }
     }
+    statusText.innerText = "62 QR Code Siap Cetak!";
 };
 
 function renderKartuSingle(container, daerah, kel, suffix) {
-    const namaPeserta = `${kel} ${suffix}`;
-    const isiBarcode = `KELOMPOK|${daerah}|${namaPeserta}`;
-    const cardId = `qr-${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Container sementara untuk di render menjadi canvas
-    const tempWrapper = document.createElement('div');
-    tempWrapper.className = "bg-white border-[3px] border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center";
-    tempWrapper.style.position = "absolute";
-    tempWrapper.style.left = "-9999px"; 
-    tempWrapper.style.width = "200px";
-    
-    tempWrapper.innerHTML = `
-        <div class="font-bold text-[11px] text-gray-600 mb-2 uppercase tracking-widest">${daerah}</div>
-        <div id="${cardId}" class="mb-4 bg-white p-1 rounded-lg"></div>
-        <div class="bg-blue-600 text-white w-full py-2 rounded-lg font-black text-sm uppercase tracking-wide px-2 leading-tight" style="word-wrap: break-word;">
-            ${namaPeserta}
-        </div>
-    `;
-    
-    document.body.appendChild(tempWrapper);
-    
-    new QRCode(document.getElementById(cardId), { 
-        text: isiBarcode, 
-        width: 140, 
-        height: 140,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
-    });
-    
-    // Convert to Image
-    setTimeout(() => {
-        html2canvas(tempWrapper, { scale: 3, backgroundColor: null }).then(canvas => {
-            const finalImg = document.createElement('img');
-            finalImg.src = canvas.toDataURL("image/png");
-            finalImg.className = "w-full rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-shadow print:shadow-none print:break-inside-avoid";
-            finalImg.title = "Tap tahan / Klik Kanan untuk Salin Gambar";
-            
-            container.appendChild(finalImg);
-            tempWrapper.remove();
+    return new Promise((resolve) => {
+        const namaPeserta = `${kel} ${suffix}`;
+        const isiBarcode = `KELOMPOK|${daerah}|${namaPeserta}`;
+        const cardId = `qr-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Container sementara untuk di render menjadi canvas
+        const tempWrapper = document.createElement('div');
+        tempWrapper.className = "bg-white border-[3px] border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-center";
+        tempWrapper.style.position = "fixed";
+        tempWrapper.style.top = "-9999px"; 
+        tempWrapper.style.width = "200px";
+        
+        tempWrapper.innerHTML = `
+            <div class="font-bold text-[11px] text-gray-600 mb-2 uppercase tracking-widest">${daerah}</div>
+            <div id="${cardId}" class="mb-4 bg-white p-1 rounded-lg"></div>
+            <div class="bg-blue-600 text-white w-full py-2 rounded-lg font-black text-sm uppercase tracking-wide px-2 leading-tight" style="word-wrap: break-word;">
+                ${namaPeserta}
+            </div>
+        `;
+        
+        document.body.appendChild(tempWrapper);
+        
+        new QRCode(document.getElementById(cardId), { 
+            text: isiBarcode, 
+            width: 140, 
+            height: 140,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
         });
-    }, 200);
+        
+        // Convert to Image
+        setTimeout(() => {
+            html2canvas(tempWrapper, { scale: 3, backgroundColor: null, logging: false }).then(canvas => {
+                const finalImg = document.createElement('img');
+                finalImg.src = canvas.toDataURL("image/png");
+                finalImg.className = "w-full rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-shadow print:shadow-none print:break-inside-avoid print:border print:border-black print:rounded-none";
+                finalImg.title = "Tap tahan / Klik Kanan untuk Salin Gambar";
+                
+                container.appendChild(finalImg);
+                tempWrapper.remove();
+                resolve();
+            }).catch(e => {
+                console.error("html2canvas error:", e);
+                tempWrapper.remove();
+                resolve(); // resolve anyway so loop continues
+            });
+        }, 100);
+    });
 }
 
 // === RESET DATABASE LOGIC ===
