@@ -96,9 +96,8 @@ const prosesAbsensiOtomatis = async (isiBarcode) => {
         await setDoc(docRef, {
             id: idDoc, 
             nama: nama, 
-            desa: daerah,
-            level: type,
-            hari: "1", // dummy hari karena sesi baru hanya 1-6 tanpa hari
+            daerah: daerah,
+            type: type,
             sesi: s,
             waktu_absen: serverTimestamp()
         });

@@ -233,10 +233,14 @@
             return {
                 currentTab: 'scan',
                 isPanitia: localStorage.getItem('isPanitia') === 'true',
+                activeSesi: (() => {
+                    const s = localStorage.getItem('activeSesi');
+                    const valid = ['Sesi 1', 'Sesi 2', 'Sesi 3', 'Sesi 4', 'Sesi 5', 'Sesi 6'];
+                    return valid.includes(s) ? s : 'Sesi 1';
+                })(),
+                sessionLocked: localStorage.getItem('sessionLocked') === 'true',
                 showLoginModal: false,
                 passwordInput: '',
-                activeSesi: localStorage.getItem('activeSesi') || 'Sesi 1',
-                sessionLocked: localStorage.getItem('sessionLocked') === 'true',
                 filterSesi: '',
                 rekapData: [],
                 
