@@ -130,6 +130,7 @@ const jalankanKamera = () => {
         async (txt) => {
             if (sedangProses) return; 
             sedangProses = true; 
+            if (html5QrCode) html5QrCode.pause();
             prosesAbsensiOtomatis(txt); 
         }
     ).catch(e => { 
@@ -166,7 +167,11 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
     const s = localStorage.getItem('activeSesi');
     try {
         const part = isiBarcode.split('|');
-        if (part.length < 3) { sedangProses = false; return alert("Barcode Tidak Valid!"); }
+        if (part.length < 3) { 
+            sedangProses = false; 
+            if (html5QrCode) html5QrCode.resume();
+            return alert("Barcode Tidak Valid!"); 
+        }
         
         const idDoc = `${isiBarcode.replace(/\|/g, '_')}_H${h}_${s}`; 
         const docRef = doc(db, "absensi_asrama", idDoc);
@@ -181,7 +186,11 @@ window.prosesAbsensiOtomatis = async (isiBarcode) => {
             waktu_absen: serverTimestamp()
         });
         tampilkanSukses(part[2], part[1], s);
-    } catch (e) { alert("Error: " + e.message); sedangProses = false; }
+    } catch (e) { 
+        alert("Error: " + e.message); 
+        sedangProses = false; 
+        if (html5QrCode) html5QrCode.resume();
+    }
 };
 
 // --- OVERLAY SUKSES ---
@@ -229,6 +238,7 @@ window.tampilkanSukses = (identitas, desa, sesi) => {
         overlay.style.display = 'none';
         if (readerElem) readerElem.style.display = 'block';
         sedangProses = false; 
+        if (html5QrCode) html5QrCode.resume();
     }, 3000);
 }
 
