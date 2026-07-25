@@ -389,9 +389,9 @@ function renderKartuSingle(container, daerah, kel, suffix) {
         tempWrapper.style.width = "200px";
         
         tempWrapper.innerHTML = `
-            <div class="font-bold text-[11px] text-gray-600 mb-2 uppercase tracking-widest">${daerah}</div>
-            <div id="${cardId}" class="mb-4 bg-white p-1 rounded-lg"></div>
-            <div class="bg-blue-600 text-white w-full py-2 rounded-lg font-black text-sm uppercase tracking-wide px-2 leading-tight" style="word-wrap: break-word;">
+            <div class="font-bold text-[12px] text-gray-700 mb-1 uppercase tracking-widest">${daerah}</div>
+            <div id="${cardId}" class="mb-1 bg-white p-1 rounded-lg"></div>
+            <div class="font-bold text-[13px] text-gray-800 uppercase tracking-widest leading-tight" style="word-wrap: break-word;">
                 ${namaPeserta}
             </div>
         `;
