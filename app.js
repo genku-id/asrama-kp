@@ -372,9 +372,9 @@ window.generateKartuSemuaKelompok = async () => {
     container.innerHTML = `
         <div class="w-full flex justify-between items-center mb-4 bg-gray-50 p-4 rounded-xl border print-hide">
             <span class="font-bold text-gray-700" id="status-generator">Memproses Kartu (0/62)...</span>
-            <button id="btn-share-kartu" onclick="window.shareSemuaKartu()" class="px-4 py-2 bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg font-bold text-sm shadow hidden flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                SHARE
+            <button id="btn-download-kartu" onclick="window.downloadSemuaKartu()" class="px-4 py-2 bg-green-600 hover:bg-green-700 transition-colors text-white rounded-lg font-bold text-sm shadow hidden flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                DOWNLOAD
             </button>
         </div>
         <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini berupa GAMBAR transparan. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau klik Share untuk membagikan semuanya.</p>
@@ -411,39 +411,24 @@ window.generateKartuSemuaKelompok = async () => {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         window.generatedZipFile = new File([zipBlob], "62_Kartu_QR_Asrama.zip", { type: "application/zip" });
         
-        statusText.innerText = "62 QR Code Siap Dibagikan!";
-        document.getElementById('btn-share-kartu').classList.remove('hidden');
+        statusText.innerText = "62 QR Code Siap Didownload!";
+        document.getElementById('btn-download-kartu').classList.remove('hidden');
     } catch (e) {
         console.error(e);
         statusText.innerText = "Gagal membuat ZIP.";
     }
 };
 
-window.shareSemuaKartu = async () => {
-    try {
-        if (!window.generatedZipFile) {
-            alert("File ZIP belum selesai diproses.");
-            return;
-        }
-        
-        if (navigator.canShare && navigator.canShare({ files: [window.generatedZipFile] })) {
-            await navigator.share({
-                title: '62 Kartu QR Asrama (ZIP)',
-                text: 'Berikut adalah kumpulan 62 Kartu QR (di-zip agar mudah dikirim).',
-                files: [window.generatedZipFile]
-            });
-        } else {
-            // Jika tidak support Web Share untuk zip, otomatis download
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(window.generatedZipFile);
-            a.download = "62_Kartu_QR_Asrama.zip";
-            a.click();
-            alert("Perangkat Anda tidak mendukung fitur Share langsung untuk format ZIP, file telah di-download otomatis.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Gagal membagikan kartu. Error: " + e.message);
+window.downloadSemuaKartu = () => {
+    if (!window.generatedZipFile) {
+        alert("File ZIP belum selesai diproses.");
+        return;
     }
+    
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(window.generatedZipFile);
+    a.download = "62_Kartu_QR_Asrama.zip";
+    a.click();
 };
 
 function renderKartuSingle(container, daerah, kel, suffix) {
