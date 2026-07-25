@@ -212,16 +212,17 @@
         </div>
 
         <!-- SUCCESS OVERLAY (FULLSCREEN) -->
-        <div id="success-overlay" class="hidden absolute inset-0 z-[9999] bg-gradient-to-b from-blue-500 to-indigo-700 flex flex-col justify-center items-center text-white text-center p-6 shadow-2xl">
+        <div id="success-overlay" onclick="window.tutupSukses()" class="hidden absolute inset-0 z-[9999] bg-gradient-to-b from-blue-500 to-indigo-700 flex flex-col justify-center items-center text-white text-center p-6 shadow-2xl cursor-pointer">
             <div class="animate-bounce mb-4 bg-white bg-opacity-20 p-4 rounded-full">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             </div>
             <p class="text-xs font-semibold mb-3 text-blue-100 uppercase tracking-widest opacity-80">Alhamdulillah Jazaa Kumullahu Koiroo</p>
             <h1 id="sukses-nama" class="text-3xl font-black uppercase mb-1 leading-tight text-white drop-shadow-md">NAMA</h1>
             <h2 id="sukses-kelompok" class="text-xl text-yellow-300 font-bold uppercase mb-8 drop-shadow-sm">KELOMPOK</h2>
-            <div class="bg-white bg-opacity-10 px-6 py-3 rounded-2xl border border-white border-opacity-20 backdrop-blur-sm inline-block">
+            <div class="bg-white bg-opacity-10 px-6 py-3 rounded-2xl border border-white border-opacity-20 backdrop-blur-sm inline-block mb-10">
                 <p id="sukses-sesi" class="text-lg font-bold">SESI AKTIF</p>
             </div>
+            <button class="px-6 py-2 rounded-full border-2 border-white border-opacity-50 text-white font-bold text-sm tracking-wider opacity-80 hover:bg-white hover:text-blue-600 transition-colors">TUTUP / LANJUT SCAN</button>
             <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
         </div>
 

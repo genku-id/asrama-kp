@@ -127,13 +127,21 @@ const tampilkanSukses = (nama, kelompok, sesi) => {
     if(sound) sound.play().catch(() => {});
     if (navigator.vibrate) navigator.vibrate(200);
 
-    setTimeout(() => { 
-        overlay.classList.add('hidden');
-        overlay.classList.remove('flex');
-        if (readerElem) readerElem.style.display = 'flex';
-        sedangProses = false; 
-        if (html5QrCode) html5QrCode.resume();
+    clearTimeout(window.successTimeout);
+    window.successTimeout = setTimeout(() => { 
+        window.tutupSukses();
     }, 3000);
+};
+
+window.tutupSukses = () => {
+    const overlay = document.getElementById('success-overlay');
+    const readerElem = document.getElementById('reader');
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    if (readerElem) readerElem.style.display = 'flex';
+    sedangProses = false; 
+    if (html5QrCode) html5QrCode.resume();
+    clearTimeout(window.successTimeout);
 };
 
 // === REKAP LOGIC ===
