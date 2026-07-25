@@ -174,7 +174,7 @@ window.generateKartuSemuaKelompok = async () => {
             <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 transition-colors text-white rounded-lg font-bold text-sm shadow">PRINT HALAMAN INI</button>
         </div>
         <p class="text-xs text-gray-500 mb-4 print-hide">Tip: Kartu di bawah ini berupa GAMBAR utuh. Anda bisa tap+tahan / klik-kanan untuk <b>Copy Image</b> atau Drag and Drop langsung ke WhatsApp.</p>
-        <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full print:grid-cols-3 print:gap-2"></div>
+        <div id="grid-kartu" class="grid grid-cols-2 gap-4 w-full print:grid-cols-2 print:gap-6"></div>
     `;
     
     const grid = document.getElementById('grid-kartu');
