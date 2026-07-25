@@ -76,7 +76,18 @@ const startKamera = () => {
 
     html5QrCode.start(
         cameraConfig, 
-        { fps: 10, qrbox: { width: 250, height: 250 } }, 
+        { 
+            fps: 10, 
+            qrbox: function(viewfinderWidth, viewfinderHeight) {
+                let minEdgePercentage = 0.65; // 65% of the screen width/height
+                let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                return {
+                    width: qrboxSize,
+                    height: qrboxSize
+                };
+            }
+        }, 
         async (decodedText) => {
             if (sedangProses) return; 
             sedangProses = true; 
