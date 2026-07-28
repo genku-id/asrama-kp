@@ -289,14 +289,14 @@ window.shareLaporanWA = async (data, showTime) => {
             
             rowsHtml += `
             <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 13px;">
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${t1}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${t2}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${t3}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${t4}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${t5}</td>
-                <td style="padding: 5px 12px; text-align: center; font-weight: bold; ${s6}">${t6}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${t1}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${t2}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${t3}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${t4}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${t5}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: bold; ${s6}">${t6}</td>
             </tr>`;
         });
         
@@ -349,7 +349,7 @@ window.shareLaporanWA = async (data, showTime) => {
         if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
             await navigator.share({
                 title: 'Laporan Rekap Asrama',
-                text: 'Berikut adalah laporan kehadiran per desa/kecamatan.',
+                text: 'Berikut adalah laporan kehadiran asrama CAI2026 per PC',
                 files: filesToShare
             });
         } else {
