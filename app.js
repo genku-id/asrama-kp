@@ -280,40 +280,41 @@ window.shareLaporanWA = async (data, showTime) => {
             const s5 = r.sesi5 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s6 = r.sesi6 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             
-            const t1 = r.sesi1 !== '-' ? (showTime ? r.sesi1 : '✔') : '-';
-            const t2 = r.sesi2 !== '-' ? (showTime ? r.sesi2 : '✔') : '-';
-            const t3 = r.sesi3 !== '-' ? (showTime ? r.sesi3 : '✔') : '-';
-            const t4 = r.sesi4 !== '-' ? (showTime ? r.sesi4 : '✔') : '-';
-            const t5 = r.sesi5 !== '-' ? (showTime ? r.sesi5 : '✔') : '-';
-            const t6 = r.sesi6 !== '-' ? (showTime ? r.sesi6 : '✔') : '-';
+            const check = '<span style="font-size: 22px; line-height: 1; display: inline-block; vertical-align: middle;">✔</span>';
+            const t1 = r.sesi1 !== '-' ? (showTime ? r.sesi1 : check) : '-';
+            const t2 = r.sesi2 !== '-' ? (showTime ? r.sesi2 : check) : '-';
+            const t3 = r.sesi3 !== '-' ? (showTime ? r.sesi3 : check) : '-';
+            const t4 = r.sesi4 !== '-' ? (showTime ? r.sesi4 : check) : '-';
+            const t5 = r.sesi5 !== '-' ? (showTime ? r.sesi5 : check) : '-';
+            const t6 = r.sesi6 !== '-' ? (showTime ? r.sesi6 : check) : '-';
             
             rowsHtml += `
-            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 13px;">
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${t1}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${t2}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${t3}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${t4}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${t5}</td>
-                <td style="padding: 10px 12px; text-align: center; font-weight: bold; ${s6}">${t6}</td>
+            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 15px; height: 42px;">
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; vertical-align: middle;">${r.daerah}</td>
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; font-weight: bold; vertical-align: middle;">${r.nama}</td>
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s1}">${t1}</td>
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s2}">${t2}</td>
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s3}">${t3}</td>
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s4}">${t4}</td>
+                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s5}">${t5}</td>
+                <td style="padding: 12px 15px; text-align: center; font-weight: bold; vertical-align: middle; ${s6}">${t6}</td>
             </tr>`;
         });
         
         return `
-        <div style="width: 1123px; min-height: 794px; height: auto; background: white; padding: 30px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
-            <h2 style="text-align: center; margin-top: 0; margin-bottom: 15px; font-size: 20px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
+        <div style="width: 1123px; min-height: 794px; height: auto; background: white; padding: 25px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 24px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
             <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
-                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
+                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 16px;">
                     <tr>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Desa / Wilayah</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Nama Kelompok</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 1</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 2</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 3</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 4</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 5</th>
-                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 6</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 1</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 2</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 3</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 4</th>
+                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 5</th>
+                        <th style="padding: 12px 15px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 6</th>
                     </tr>
                 </thead>
                 <tbody>
