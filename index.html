@@ -119,13 +119,17 @@
                 <template x-if="isPanitia">
                     <div class="space-y-4">
                         <div class="flex gap-2 print-hide">
-                            <button @click="fetchRekap()" class="flex-grow p-3 bg-gray-800 text-white rounded-xl shadow-md hover:bg-gray-900 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                REFRESH
+                            <button @click="showTime = !showTime" class="flex-grow p-3 bg-gray-800 text-white rounded-xl shadow-md hover:bg-gray-900 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span x-text="showTime ? 'SEMBUNYIKAN WAKTU' : 'TAMPILKAN WAKTU'"></span>
                             </button>
-                            <button id="btn-share" @click="window.shareLaporanWA(JSON.parse(JSON.stringify(rekapData)))" class="flex-grow p-3 bg-green-600 text-white rounded-xl shadow-md hover:bg-green-700 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
+                            <button id="btn-share" @click="window.shareLaporanWA(JSON.parse(JSON.stringify(rekapData)), showTime)" class="flex-grow p-3 bg-green-600 text-white rounded-xl shadow-md hover:bg-green-700 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
                                 SHARE
+                            </button>
+                            <button @click="window.print()" class="p-3 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition-all font-bold text-xs flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                CETAK
                             </button>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto print:overflow-visible print:border-none print:shadow-none mb-10">
@@ -147,12 +151,12 @@
                                         <tr class="hover:bg-blue-50 transition-colors" :class="(index % 2 === 0) ? 'bg-white' : 'bg-gray-50'">
                                             <td class="px-2 py-1.5 border-r border-gray-100" x-text="row.daerah"></td>
                                             <td class="px-2 py-1.5 border-r border-gray-100 font-bold text-gray-800" x-text="row.nama"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi1 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi1"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi2 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi2"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi3 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi3"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi4 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi4"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi5 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi5"></td>
-                                            <td class="px-1.5 py-1.5 text-center font-medium" :class="row.sesi6 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi6"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi1 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi1 !== '-' ? (showTime ? row.sesi1 : '✔') : '-'"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi2 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi2 !== '-' ? (showTime ? row.sesi2 : '✔') : '-'"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi3 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi3 !== '-' ? (showTime ? row.sesi3 : '✔') : '-'"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi4 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi4 !== '-' ? (showTime ? row.sesi4 : '✔') : '-'"></td>
+                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi5 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi5 !== '-' ? (showTime ? row.sesi5 : '✔') : '-'"></td>
+                                            <td class="px-1.5 py-1.5 text-center font-medium" :class="row.sesi6 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi6 !== '-' ? (showTime ? row.sesi6 : '✔') : '-'"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -253,17 +257,17 @@
 
     </div>
 
-    <script type="module" src="app.js?v=25"></script>
+    <script type="module" src="app.js?v=26"></script>
     <script>
         function asramaApp() {
             return {
-                currentTab: 'scan',
+                currentTab: 'scan', // scan, rekap, kartu
                 isPanitia: localStorage.getItem('isPanitia') === 'true',
                 activeSesi: 'Sesi 1',
                 sessionLocked: false,
                 showLoginModal: false,
                 passwordInput: '',
-                filterSesi: '',
+                showTime: false,
                 rekapData: [],
                 
                 init() {

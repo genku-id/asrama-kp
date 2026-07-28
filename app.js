@@ -253,7 +253,7 @@ window.fetchRekapData = async () => {
     }
 };
 
-window.shareLaporanWA = async (data) => {
+window.shareLaporanWA = async (data, showTime) => {
     if (!data || data.length === 0) return alert("Belum ada data.");
     
     const btn = document.getElementById('btn-share');
@@ -280,16 +280,23 @@ window.shareLaporanWA = async (data) => {
             const s5 = r.sesi5 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s6 = r.sesi6 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             
+            const t1 = r.sesi1 !== '-' ? (showTime ? r.sesi1 : '✔') : '-';
+            const t2 = r.sesi2 !== '-' ? (showTime ? r.sesi2 : '✔') : '-';
+            const t3 = r.sesi3 !== '-' ? (showTime ? r.sesi3 : '✔') : '-';
+            const t4 = r.sesi4 !== '-' ? (showTime ? r.sesi4 : '✔') : '-';
+            const t5 = r.sesi5 !== '-' ? (showTime ? r.sesi5 : '✔') : '-';
+            const t6 = r.sesi6 !== '-' ? (showTime ? r.sesi6 : '✔') : '-';
+            
             rowsHtml += `
             <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 13px;">
                 <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
                 <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${r.sesi1}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${r.sesi2}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${r.sesi3}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${r.sesi4}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${r.sesi5}</td>
-                <td style="padding: 5px 12px; text-align: center; font-weight: bold; ${s6}">${r.sesi6}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${t1}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${t2}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${t3}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${t4}</td>
+                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${t5}</td>
+                <td style="padding: 5px 12px; text-align: center; font-weight: bold; ${s6}">${t6}</td>
             </tr>`;
         });
         
