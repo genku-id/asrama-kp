@@ -132,6 +132,7 @@
                                 CETAK
                             </button>
                         </div>
+                        <h2 class="hidden print:block text-center text-lg font-extrabold mb-4 mt-2 text-gray-800 uppercase tracking-wide">Rekapitulasi Kehadiran Asrama Kulon Progo</h2>
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto print:overflow-visible print:border-none print:shadow-none mb-10">
                             <table class="w-full text-left text-[10px] sm:text-xs whitespace-nowrap">
                                 <thead class="bg-indigo-50 text-indigo-800 border-b border-indigo-100">
@@ -148,7 +149,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     <template x-for="(row, index) in rekapData" :key="index">
-                                        <tr class="hover:bg-blue-50 transition-colors" :class="(index % 2 === 0) ? 'bg-white' : 'bg-gray-50'">
+                                        <tr class="hover:bg-blue-50 transition-colors" :class="(index % 2 === 0) ? 'bg-white' : 'bg-gray-50'" :style="index === 31 ? 'page-break-before: always; break-before: page;' : ''">
                                             <td class="px-2 py-1.5 border-r border-gray-100" x-text="row.daerah"></td>
                                             <td class="px-2 py-1.5 border-r border-gray-100 font-bold text-gray-800" x-text="row.nama"></td>
                                             <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi1 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi1 !== '-' ? (showTime ? row.sesi1 : '✔') : '-'"></td>
@@ -257,7 +258,7 @@
 
     </div>
 
-    <script type="module" src="app.js?v=28"></script>
+    <script type="module" src="app.js?v=30"></script>
     <script>
         function asramaApp() {
             return {
