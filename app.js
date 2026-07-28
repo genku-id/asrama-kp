@@ -340,7 +340,7 @@ window.shareLaporanWA = async (data, showTime) => {
         const blobsToDownload = [];
         
         for (let i = 0; i < daerahKeys.length; i++) {
-            const canvas = await html2canvas(document.getElementById(`hal-${i + 1}`), { scale: 2, useCORS: true });
+            const canvas = await html2canvas(document.getElementById(`hal-${i + 1}`), { scale: 1, useCORS: true });
             const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
             blobsToDownload.push({ blob: blob, name: `Laporan_Asrama_${daerahKeys[i]}.jpg` });
             filesToShare.push(new File([blob], `Laporan_Asrama_${daerahKeys[i]}.jpg`, { type: 'image/jpeg' }));
