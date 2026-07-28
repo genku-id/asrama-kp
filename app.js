@@ -264,7 +264,7 @@ window.shareLaporanWA = async (data, showTime) => {
     hiddenContainer.style.position = 'fixed';
     hiddenContainer.style.top = '-9999px';
     hiddenContainer.style.left = '-9999px';
-    hiddenContainer.style.width = '1123px';
+    hiddenContainer.style.width = '794px'; // Portrait A4 width
     hiddenContainer.style.zIndex = '-9999';
     
 
@@ -288,32 +288,32 @@ window.shareLaporanWA = async (data, showTime) => {
             const t6 = r.sesi6 !== '-' ? (showTime ? r.sesi6 : '✔') : '-';
             
             rowsHtml += `
-            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 13px;">
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${t1}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${t2}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${t3}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${t4}</td>
-                <td style="padding: 5px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${t5}</td>
-                <td style="padding: 5px 12px; text-align: center; font-weight: bold; ${s6}">${t6}</td>
+            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 11px;">
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0;">${r.daerah}</td>
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0; font-weight: bold;">${r.nama}</td>
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s1}">${t1}</td>
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s2}">${t2}</td>
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s3}">${t3}</td>
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s4}">${t4}</td>
+                <td style="padding: 4px 8px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; ${s5}">${t5}</td>
+                <td style="padding: 4px 8px; text-align: center; font-weight: bold; ${s6}">${t6}</td>
             </tr>`;
         });
         
         return `
-        <div style="width: 1123px; min-height: 794px; height: auto; background: white; padding: 30px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
-            <h2 style="text-align: center; margin-top: 0; margin-bottom: 15px; font-size: 20px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
+        <div style="width: 794px; min-height: 1123px; height: auto; background: white; padding: 25px 30px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
             <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
-                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
+                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 12px;">
                     <tr>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Desa / Wilayah</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Nama Kelompok</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 1</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 2</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 3</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 4</th>
-                        <th style="padding: 8px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 5</th>
-                        <th style="padding: 8px 12px; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 6</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Desa / Wilayah</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">Nama Kelompok</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 1</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 2</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 3</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 4</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 5</th>
+                        <th style="padding: 6px 8px; border-bottom: 2px solid #cbd5e1; text-align: center;">Sesi 6</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -324,13 +324,14 @@ window.shareLaporanWA = async (data, showTime) => {
         `;
     };
     
-    const daerahKeys = ["WATES", "PENGASIH", "TEMON", "LENDAH", "SAMIGALUH"];
     let containerHtml = "";
     
-    daerahKeys.forEach((daerah, idx) => {
-        const rowsForDaerah = data.filter(r => r.daerah === daerah);
-        containerHtml += `<div id="hal-${idx + 1}">${renderTable(rowsForDaerah, `PC ${daerah}`)}</div>`;
-    });
+    // Pecah menjadi 2 bagian (masing-masing maksimal 31 kelompok)
+    const part1 = data.slice(0, 31);
+    const part2 = data.slice(31, 62);
+    
+    if (part1.length > 0) containerHtml += `<div id="hal-1">${renderTable(part1, "Bagian 1")}</div>`;
+    if (part2.length > 0) containerHtml += `<div id="hal-2">${renderTable(part2, "Bagian 2")}</div>`;
     
     hiddenContainer.innerHTML = containerHtml;
     document.body.appendChild(hiddenContainer);
@@ -339,11 +340,13 @@ window.shareLaporanWA = async (data, showTime) => {
         const filesToShare = [];
         const blobsToDownload = [];
         
-        for (let i = 0; i < daerahKeys.length; i++) {
-            const canvas = await html2canvas(document.getElementById(`hal-${i + 1}`), { scale: 1, useCORS: true });
+        const numPages = (part2.length > 0) ? 2 : 1;
+        
+        for (let i = 0; i < numPages; i++) {
+            const canvas = await html2canvas(document.getElementById(`hal-${i + 1}`), { scale: 2, useCORS: true });
             const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
-            blobsToDownload.push({ blob: blob, name: `Laporan_Asrama_${daerahKeys[i]}.jpg` });
-            filesToShare.push(new File([blob], `Laporan_Asrama_${daerahKeys[i]}.jpg`, { type: 'image/jpeg' }));
+            blobsToDownload.push({ blob: blob, name: `Laporan_Asrama_Bagian_${i + 1}.jpg` });
+            filesToShare.push(new File([blob], `Laporan_Asrama_Bagian_${i + 1}.jpg`, { type: 'image/jpeg' }));
         }
         
         if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
