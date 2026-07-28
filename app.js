@@ -112,10 +112,10 @@ const startKamera = () => {
             sedangProses = true; 
             if (html5QrCode) html5QrCode.pause(); // Jeda kamera supaya layar ijo (sukses scan) terlihat
 
-            // Beri waktu 2 detik sebelum memproses dan memunculkan overlay
+            // Beri waktu sejenak sebelum memproses (dipercepat)
             setTimeout(async () => {
                 await prosesAbsensiOtomatis(decodedText); 
-            }, 2000);
+            }, 500);
         }
     ).then(() => {
         isKameraAktif = true;
@@ -200,7 +200,7 @@ const tampilkanSukses = (nama, kelompok, sesi) => {
     clearTimeout(window.successTimeout);
     window.successTimeout = setTimeout(() => { 
         window.tutupSukses();
-    }, 3000);
+    }, 1500);
 };
 
 window.tutupSukses = () => {
