@@ -30,10 +30,11 @@
         [x-cloak] { display: none !important; }
 
         @media print {
+            html, body { position: static !important; overflow: visible !important; height: auto !important; width: auto !important; }
             body, .mobile-container { overflow: visible !important; height: auto !important; background: white !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
             header, nav, button, .print-hide { display: none !important; }
-            main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
-            @page { margin: 10mm; size: landscape; }
+            main, #currentTab { padding: 0 !important; margin: 0 !important; overflow: visible !important; display: block !important; }
+            @page { margin: 10mm; size: portrait; }
         }
         
         /* CSS to support HTML5-QRCode */
@@ -258,7 +259,7 @@
 
     </div>
 
-    <script type="module" src="app.js?v=31"></script>
+    <script type="module" src="app.js?v=32"></script>
     <script>
         function asramaApp() {
             return {
