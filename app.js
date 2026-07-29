@@ -546,7 +546,13 @@ document.addEventListener("keydown", (e) => {
         barcodeBuffer += e.key;
         clearTimeout(barcodeTimer);
         barcodeTimer = setTimeout(() => {
+            if (barcodeBuffer.startsWith("KELOMPOK|") && barcodeBuffer.length > 10) {
+                if (!sedangProses) {
+                    sedangProses = true;
+                    prosesAbsensiOtomatis(barcodeBuffer);
+                }
+            }
             barcodeBuffer = "";
-        }, 5000);
+        }, 300);
     }
 });
