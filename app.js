@@ -17,6 +17,36 @@ let cameraList = [];
 let currentCameraIndex = 0;
 let isKameraAktif = false;
 
+// === GENERATE MANUAL OPTIONS ===
+document.addEventListener('DOMContentLoaded', () => {
+    const manualSelect = document.getElementById('manualSelect');
+    if (manualSelect) {
+        let html = '<option value="">-- Pilih Kelompok --</option>';
+        for (const w in WILAYAH) {
+            html += `<optgroup label="${w}">`;
+            WILAYAH[w].forEach(k => {
+                html += `<option value="KELOMPOK|${w}|${k} A">${k} A</option>`;
+                html += `<option value="KELOMPOK|${w}|${k} B">${k} B</option>`;
+            });
+            html += `</optgroup>`;
+        }
+        manualSelect.innerHTML = html;
+    }
+});
+
+window.submitManual = () => {
+    const val = document.getElementById('manualSelect').value;
+    if (!val) { 
+        alert("Pilih kelompok dulu!"); 
+        return; 
+    }
+    if (!sedangProses) {
+        sedangProses = true;
+        prosesAbsensiOtomatis(val);
+        document.getElementById('manualSelect').value = ""; // Reset form
+    }
+};
+
 // === REAL-TIME SETTINGS LISTENER ===
 onSnapshot(doc(db, "settings", "appSettings"), (docSnap) => {
     if (docSnap.exists() && window.alpineApp) {
