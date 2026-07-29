@@ -113,9 +113,8 @@
                         <div class="mt-2 bg-gray-50 p-4 rounded-2xl border border-gray-200">
                             <p class="text-[11px] font-bold text-gray-500 mb-2 uppercase tracking-wide">Atau Input Manual (Darurat)</p>
                             <div class="flex gap-2">
-                                <select id="manualSelect" class="flex-grow p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 text-sm focus:ring-2 focus:ring-blue-400">
-                                    <option value="">-- Pilih Kelompok --</option>
-                                </select>
+                                <input type="text" id="manualInput" list="manualOptions" placeholder="Ketik nama kelompok... (misal: GIRIPENI 1 A)" class="flex-grow p-2.5 rounded-xl border border-gray-300 bg-white font-bold text-gray-700 text-sm focus:ring-2 focus:ring-blue-400" autocomplete="off">
+                                <datalist id="manualOptions"></datalist>
                                 <button onclick="window.submitManual()" class="px-4 py-2.5 bg-gray-800 text-white rounded-xl shadow-sm hover:bg-gray-900 active:scale-95 transition-transform font-bold text-sm">
                                     KIRIM
                                 </button>
@@ -272,7 +271,7 @@
 
     </div>
 
-    <script type="module" src="app.js?v=39"></script>
+    <script type="module" src="app.js?v=40"></script>
     <script>
         function asramaApp() {
             return {

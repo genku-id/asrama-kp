@@ -16,34 +16,43 @@ let sedangProses = false;
 let cameraList = [];
 let currentCameraIndex = 0;
 let isKameraAktif = false;
+window.reverseMap = {}; // "GIRIPENI 1 A" -> "KELOMPOK|WATES|GIRIPENI 1 A"
 
 // === GENERATE MANUAL OPTIONS ===
 document.addEventListener('DOMContentLoaded', () => {
-    const manualSelect = document.getElementById('manualSelect');
-    if (manualSelect) {
-        let html = '<option value="">-- Pilih Kelompok --</option>';
+    const manualOptions = document.getElementById('manualOptions');
+    if (manualOptions) {
+        let html = '';
         for (const w in WILAYAH) {
-            html += `<optgroup label="${w}">`;
             WILAYAH[w].forEach(k => {
-                html += `<option value="KELOMPOK|${w}|${k} A">${k} A</option>`;
-                html += `<option value="KELOMPOK|${w}|${k} B">${k} B</option>`;
+                html += `<option value="${k} A">`;
+                html += `<option value="${k} B">`;
+                window.reverseMap[`${k} A`] = `KELOMPOK|${w}|${k} A`;
+                window.reverseMap[`${k} B`] = `KELOMPOK|${w}|${k} B`;
             });
-            html += `</optgroup>`;
         }
-        manualSelect.innerHTML = html;
+        manualOptions.innerHTML = html;
     }
 });
 
 window.submitManual = () => {
-    const val = document.getElementById('manualSelect').value;
+    const inputEl = document.getElementById('manualInput');
+    const val = inputEl.value.trim().toUpperCase();
     if (!val) { 
-        alert("Pilih kelompok dulu!"); 
+        alert("Ketik nama kelompok dulu!"); 
         return; 
     }
+
+    const fullBarcode = window.reverseMap[val];
+    if (!fullBarcode) {
+        alert("Nama kelompok tidak ditemukan! Pastikan ejaannya benar (contoh: GIRIPENI 1 A)");
+        return;
+    }
+
     if (!sedangProses) {
         sedangProses = true;
-        prosesAbsensiOtomatis(val);
-        document.getElementById('manualSelect').value = ""; // Reset form
+        prosesAbsensiOtomatis(fullBarcode);
+        inputEl.value = ""; // Reset form
     }
 };
 
