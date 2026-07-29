@@ -547,6 +547,6 @@ document.addEventListener("keydown", (e) => {
         clearTimeout(barcodeTimer);
         barcodeTimer = setTimeout(() => {
             barcodeBuffer = "";
-        }, 100);
+        }, 5000);
     }
 });
