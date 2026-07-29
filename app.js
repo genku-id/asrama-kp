@@ -529,30 +529,39 @@ document.addEventListener("keydown", (e) => {
     if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
 
     if (e.key === "Enter") {
-        if (barcodeBuffer.length > 5) { 
-            if (!sedangProses) {
-                sedangProses = true;
-                setTimeout(() => {
-                    prosesAbsensiOtomatis(barcodeBuffer);
-                }, 100);
-            }
-        }
-        barcodeBuffer = "";
-        clearTimeout(barcodeTimer);
+        // Kita abaikan tombol Enter, biarkan Regex yang menangkap teks lengkapnya
         return;
     }
 
     if (e.key.length === 1) {
         barcodeBuffer += e.key;
+        
+        // Jaga agar memori buffer tidak bocor (maksimal 200 karakter terakhir)
+        if (barcodeBuffer.length > 200) {
+            barcodeBuffer = barcodeBuffer.substring(barcodeBuffer.length - 100);
+        }
+
+        // Cari pola barcode valid yang selalu berakhiran ' A' atau ' B'
+        // Contoh: KELOMPOK|WATES|GIRIPENI 1 A
+        const regex = /KELOMPOK\|(WATES|PENGASIH|TEMON|LENDAH|SAMIGALUH)\|([a-zA-Z0-9\s]+\s(A|B))/i;
+        const match = barcodeBuffer.match(regex);
+        
+        if (match) {
+            const validBarcode = match[0];
+            barcodeBuffer = ""; // Kosongkan buffer karena sudah ketemu
+            
+            if (!sedangProses) {
+                sedangProses = true;
+                setTimeout(() => {
+                    prosesAbsensiOtomatis(validBarcode);
+                }, 50); // Jeda sangat tipis agar UI tidak freeze
+            }
+        }
+        
+        // Bersihkan buffer jika didiamkan lebih dari 10 detik (misal ada salah scan)
         clearTimeout(barcodeTimer);
         barcodeTimer = setTimeout(() => {
-            if (barcodeBuffer.startsWith("KELOMPOK|") && barcodeBuffer.length > 10) {
-                if (!sedangProses) {
-                    sedangProses = true;
-                    prosesAbsensiOtomatis(barcodeBuffer);
-                }
-            }
             barcodeBuffer = "";
-        }, 300);
+        }, 10000);
     }
 });
