@@ -339,17 +339,17 @@ window.shareLaporanWA = async (data, showTime) => {
             const t8 = r.sesi8 !== '-' ? (showTime ? r.sesi8 : check) : '-';
             
             rowsHtml += `
-            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 14px; height: 38px;">
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; vertical-align: middle;">${r.daerah}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; font-weight: bold; vertical-align: middle;">${r.nama}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s1}">${t1}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s2}">${t2}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s3}">${t3}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s4}">${t4}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s5}">${t5}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s6}">${t6}</td>
-                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s7}">${t7}</td>
-                <td style="padding: 10px 12px; text-align: center; font-weight: bold; vertical-align: middle; ${s8}">${t8}</td>
+            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 14px; height: 26px;">
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; vertical-align: middle;">${r.daerah}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; font-weight: bold; vertical-align: middle;">${r.nama}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s1}">${t1}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s2}">${t2}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s3}">${t3}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s4}">${t4}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s5}">${t5}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s6}">${t6}</td>
+                <td style="padding: 4px 6px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s7}">${t7}</td>
+                <td style="padding: 4px 6px; text-align: center; font-weight: bold; vertical-align: middle; ${s8}">${t8}</td>
             </tr>`;
         });
         
@@ -359,16 +359,16 @@ window.shareLaporanWA = async (data, showTime) => {
             <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
                 <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
                     <tr>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Jum'at<br>Mlm</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Subuh</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 1</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 2</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Siang</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Mlm</th>
-                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Subuh</th>
-                        <th style="padding: 10px 12px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Pagi</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Jum'at<br>Mlm</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Subuh</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 1</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 2</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Siang</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Mlm</th>
+                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Subuh</th>
+                        <th style="padding: 6px 8px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Pagi</th>
                     </tr>
                 </thead>
                 <tbody>
