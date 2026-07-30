@@ -90,12 +90,14 @@
                             <p class="text-[11px] font-bold text-blue-500 mb-2 uppercase tracking-wide">PENGATURAN SESI SEKARANG</p>
                             <div class="flex gap-2 items-center">
                                 <select x-model="activeSesi" @change="window.updateSesiKeDatabase(activeSesi)" :disabled="sessionLocked" class="flex-grow p-2.5 rounded-xl border-none outline-none ring-1 ring-blue-200 bg-white font-bold text-gray-700 text-sm focus:ring-2 focus:ring-blue-400">
-                                    <option value="Sesi 1">SESI 1</option>
-                                    <option value="Sesi 2">SESI 2</option>
-                                    <option value="Sesi 3">SESI 3</option>
-                                    <option value="Sesi 4">SESI 4</option>
-                                    <option value="Sesi 5">SESI 5</option>
-                                    <option value="Sesi 6">SESI 6</option>
+                                    <option value="Sesi 1">JUM'AT MLM</option>
+                                    <option value="Sesi 2">SABTU SUBUH</option>
+                                    <option value="Sesi 3">SABTU PAGI 1</option>
+                                    <option value="Sesi 4">SABTU PAGI 2</option>
+                                    <option value="Sesi 5">SABTU SIANG</option>
+                                    <option value="Sesi 6">SABTU MLM</option>
+                                    <option value="Sesi 7">MINGGU SUBUH</option>
+                                    <option value="Sesi 8">MINGGU PAGI</option>
                                 </select>
                                 <button @click="toggleLock()" class="p-2.5 bg-white rounded-xl shadow-sm border border-blue-100 flex-shrink-0 transition-all hover:bg-gray-50">
                                     <svg x-show="sessionLocked" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -152,12 +154,14 @@
                                     <tr>
                                         <th class="px-2 py-2 border-r border-indigo-100">Desa</th>
                                         <th class="px-2 py-2 border-r border-indigo-100">Kelompok</th>
-                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 1</th>
-                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 2</th>
-                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 3</th>
-                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 4</th>
-                                        <th class="px-1.5 py-2 border-r border-indigo-100 text-center">Sesi 5</th>
-                                        <th class="px-1.5 py-2 text-center">Sesi 6</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Jum'at Mlm</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Sabtu Subuh</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Sabtu Pagi 1</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Sabtu Pagi 2</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Sabtu Siang</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Sabtu Mlm</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Minggu Subuh</th>
+                                        <th class="p-3 text-center border-l border-indigo-100">Minggu Pagi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
@@ -165,12 +169,14 @@
                                         <tr class="hover:bg-blue-50 transition-colors" :class="(index % 2 === 0) ? 'bg-white' : 'bg-gray-50'" :style="index === 31 ? 'page-break-before: always; break-before: page;' : ''">
                                             <td class="px-2 py-1.5 border-r border-gray-100" x-text="row.daerah"></td>
                                             <td class="px-2 py-1.5 border-r border-gray-100 font-bold text-gray-800" x-text="row.nama"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi1 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi1 !== '-' ? (showTime ? row.sesi1 : '✔') : '-'"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi2 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi2 !== '-' ? (showTime ? row.sesi2 : '✔') : '-'"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi3 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi3 !== '-' ? (showTime ? row.sesi3 : '✔') : '-'"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi4 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi4 !== '-' ? (showTime ? row.sesi4 : '✔') : '-'"></td>
-                                            <td class="px-1.5 py-1.5 border-r border-gray-100 text-center font-medium" :class="row.sesi5 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi5 !== '-' ? (showTime ? row.sesi5 : '✔') : '-'"></td>
-                                            <td class="px-1.5 py-1.5 text-center font-medium" :class="row.sesi6 !== '-' ? 'text-green-600 bg-green-50' : 'text-gray-300'" x-text="row.sesi6 !== '-' ? (showTime ? row.sesi6 : '✔') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi1 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi1 !== '-' ? (showTime ? row.sesi1 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi2 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi2 !== '-' ? (showTime ? row.sesi2 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi3 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi3 !== '-' ? (showTime ? row.sesi3 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi4 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi4 !== '-' ? (showTime ? row.sesi4 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi5 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi5 !== '-' ? (showTime ? row.sesi5 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi6 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi6 !== '-' ? (showTime ? row.sesi6 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi7 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi7 !== '-' ? (showTime ? row.sesi7 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
+                                            <td class="p-3 text-center border-l border-gray-100 font-bold" :class="row.sesi8 !== '-' ? 'text-green-600' : 'text-gray-300'" x-html="row.sesi8 !== '-' ? (showTime ? row.sesi8 : '<span class=\'text-lg leading-none\'>✔</span>') : '-'"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -271,7 +277,7 @@
 
     </div>
 
-    <script type="module" src="app.js?v=41"></script>
+    <script type="module" src="app.js?v=42"></script>
     <script>
         function asramaApp() {
             return {
@@ -338,8 +344,9 @@
                 },
 
                 fetchRekap() {
-                    if (window.fetchRekapData) {
-                        window.fetchRekapData(this.filterSesi).then(data => {
+                    if (window.subscribeRekapData) {
+                        if (this.unsubscribeRekap) this.unsubscribeRekap();
+                        this.unsubscribeRekap = window.subscribeRekapData((data) => {
                             this.rekapData = data;
                         });
                     }

@@ -254,22 +254,27 @@ window.tutupSukses = () => {
 };
 
 // === REKAP LOGIC ===
-window.fetchRekapData = async () => {
-    try {
-        // Buat kerangka matriks 62 kelompok
-        const matrix = [];
-        for (const daerah in WILAYAH) {
-            const kelompoks = WILAYAH[daerah];
-            for (const kel of kelompoks) {
-                matrix.push({ daerah: daerah, nama: `${kel} A`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-' });
-                matrix.push({ daerah: daerah, nama: `${kel} B`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-' });
-            }
+window.subscribeRekapData = (callback) => {
+    // Buat kerangka matriks 62 kelompok
+    const matrix = [];
+    for (const daerah in WILAYAH) {
+        const kelompoks = WILAYAH[daerah];
+        for (const kel of kelompoks) {
+            matrix.push({ daerah: daerah, nama: `${kel} A`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-', sesi7: '-', sesi8: '-' });
+            matrix.push({ daerah: daerah, nama: `${kel} B`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-', sesi7: '-', sesi8: '-' });
         }
+    }
 
-        // Ambil semua data absensi
-        const q = query(collection(db, "absensi_asrama"));
-        const snap = await getDocs(q);
-        
+    const q = query(collection(db, "absensi_asrama"));
+    
+    // onSnapshot membuat data langsung otomatis ber-sinkronisasi (auto-refresh) 
+    const unsubscribe = onSnapshot(q, (snap) => {
+        // Bersihkan dulu
+        matrix.forEach(row => {
+            row.sesi1 = '-'; row.sesi2 = '-'; row.sesi3 = '-'; row.sesi4 = '-';
+            row.sesi5 = '-'; row.sesi6 = '-'; row.sesi7 = '-'; row.sesi8 = '-';
+        });
+
         snap.forEach(docSnap => {
             const d = docSnap.data();
             const time = d.waktu_absen ? d.waktu_absen.toDate().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : 'V';
@@ -282,14 +287,17 @@ window.fetchRekapData = async () => {
                 else if (d.sesi === "Sesi 4") row.sesi4 = time;
                 else if (d.sesi === "Sesi 5") row.sesi5 = time;
                 else if (d.sesi === "Sesi 6") row.sesi6 = time;
+                else if (d.sesi === "Sesi 7") row.sesi7 = time;
+                else if (d.sesi === "Sesi 8") row.sesi8 = time;
             }
         });
         
-        return matrix;
-    } catch (e) {
-        console.error("Gagal mengambil rekap:", e);
-        return [];
-    }
+        callback([...matrix]); // Kirim update terbaru ke UI Alpine
+    }, (err) => {
+        console.error("Gagal auto-refresh rekap:", err);
+    });
+
+    return unsubscribe;
 };
 
 window.shareLaporanWA = async (data, showTime) => {
@@ -317,7 +325,8 @@ window.shareLaporanWA = async (data, showTime) => {
             const s3 = r.sesi3 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s4 = r.sesi4 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s5 = r.sesi5 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
-            const s6 = r.sesi6 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s7 = r.sesi7 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s8 = r.sesi8 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             
             const check = '<span style="font-size: 22px; line-height: 1; display: inline-block; vertical-align: middle;">✔</span>';
             const t1 = r.sesi1 !== '-' ? (showTime ? r.sesi1 : check) : '-';
@@ -326,34 +335,40 @@ window.shareLaporanWA = async (data, showTime) => {
             const t4 = r.sesi4 !== '-' ? (showTime ? r.sesi4 : check) : '-';
             const t5 = r.sesi5 !== '-' ? (showTime ? r.sesi5 : check) : '-';
             const t6 = r.sesi6 !== '-' ? (showTime ? r.sesi6 : check) : '-';
+            const t7 = r.sesi7 !== '-' ? (showTime ? r.sesi7 : check) : '-';
+            const t8 = r.sesi8 !== '-' ? (showTime ? r.sesi8 : check) : '-';
             
             rowsHtml += `
-            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 15px; height: 42px;">
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; vertical-align: middle;">${r.daerah}</td>
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; font-weight: bold; vertical-align: middle;">${r.nama}</td>
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s1}">${t1}</td>
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s2}">${t2}</td>
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s3}">${t3}</td>
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s4}">${t4}</td>
-                <td style="padding: 12px 15px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s5}">${t5}</td>
-                <td style="padding: 12px 15px; text-align: center; font-weight: bold; vertical-align: middle; ${s6}">${t6}</td>
+            <tr style="${bg} border-bottom: 1px solid #e2e8f0; font-size: 14px; height: 38px;">
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; vertical-align: middle;">${r.daerah}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; font-weight: bold; vertical-align: middle;">${r.nama}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s1}">${t1}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s2}">${t2}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s3}">${t3}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s4}">${t4}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s5}">${t5}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s6}">${t6}</td>
+                <td style="padding: 10px 12px; border-right: 1px solid #e2e8f0; text-align: center; font-weight: bold; vertical-align: middle; ${s7}">${t7}</td>
+                <td style="padding: 10px 12px; text-align: center; font-weight: bold; vertical-align: middle; ${s8}">${t8}</td>
             </tr>`;
         });
         
         return `
-        <div style="width: 1123px; min-height: 794px; height: auto; background: white; padding: 25px 40px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
-            <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 24px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
+        <div style="width: 1200px; min-height: 794px; height: auto; background: white; padding: 25px 30px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
+            <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 22px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
             <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
-                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 16px;">
+                <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
                     <tr>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 1</th>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 2</th>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 3</th>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 4</th>
-                        <th style="padding: 12px 15px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 5</th>
-                        <th style="padding: 12px 15px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sesi 6</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Jum'at Mlm</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu Subuh</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu Pagi 1</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu Pagi 2</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu Siang</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu Mlm</th>
+                        <th style="padding: 10px 12px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu Subuh</th>
+                        <th style="padding: 10px 12px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu Pagi</th>
                     </tr>
                 </thead>
                 <tbody>
