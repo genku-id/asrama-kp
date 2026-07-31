@@ -403,8 +403,6 @@ window.shareLaporanWA = async (data, showTime) => {
         
         if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
             await navigator.share({
-                title: 'Laporan Rekap Asrama',
-                text: 'Berikut adalah laporan kehadiran asrama CAI2026 per PC',
                 files: filesToShare
             });
         } else {
