@@ -311,7 +311,7 @@ window.shareLaporanWA = async (data, showTime) => {
     hiddenContainer.style.position = 'fixed';
     hiddenContainer.style.top = '-9999px';
     hiddenContainer.style.left = '-9999px';
-    hiddenContainer.style.width = '1123px';
+    hiddenContainer.style.width = '1200px';
     hiddenContainer.style.zIndex = '-9999';
     
 
