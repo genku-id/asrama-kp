@@ -325,6 +325,7 @@ window.shareLaporanWA = async (data, showTime) => {
             const s3 = r.sesi3 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s4 = r.sesi4 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s5 = r.sesi5 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
+            const s6 = r.sesi6 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s7 = r.sesi7 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             const s8 = r.sesi8 !== '-' ? 'color: #16a34a;' : 'color: #cbd5e1;';
             
