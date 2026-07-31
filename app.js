@@ -356,19 +356,19 @@ window.shareLaporanWA = async (data, showTime) => {
         return `
         <div style="width: 1200px; min-height: 794px; height: auto; background: white; padding: 25px 30px; box-sizing: border-box; font-family: 'Inter', sans-serif;">
             <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-size: 22px; color: #1e293b; text-transform: uppercase; font-weight: 800;">Rekapitulasi Kehadiran Asrama Kulon Progo - ${title}</h2>
-            <table style="width: 100%; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
+            <table style="width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; border: 1px solid #cbd5e1;">
                 <thead style="background-color: #eef2ff; color: #3730a3; font-size: 14px;">
                     <tr>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Jum'at<br>Mlm</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Subuh</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 1</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 2</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Siang</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Mlm</th>
-                        <th style="padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Subuh</th>
-                        <th style="padding: 6px 8px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Pagi</th>
+                        <th style="width: 12%; padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Desa / Wilayah</th>
+                        <th style="width: 20%; padding: 6px 8px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; vertical-align: middle;">Nama Kelompok</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Jum'at<br>Mlm</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Subuh</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 1</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Pagi 2</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Siang</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Sabtu<br>Mlm</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-right: 1px solid #cbd5e1; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Subuh</th>
+                        <th style="width: 8.5%; padding: 6px 4px; border-bottom: 2px solid #cbd5e1; text-align: center; vertical-align: middle;">Minggu<br>Pagi</th>
                     </tr>
                 </thead>
                 <tbody>
