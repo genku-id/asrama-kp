@@ -255,25 +255,19 @@ window.tutupSukses = () => {
 
 // === REKAP LOGIC ===
 window.subscribeRekapData = (callback) => {
-    // Buat kerangka matriks 62 kelompok
-    const matrix = [];
-    for (const daerah in WILAYAH) {
-        const kelompoks = WILAYAH[daerah];
-        for (const kel of kelompoks) {
-            matrix.push({ daerah: daerah, nama: `${kel} A`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-', sesi7: '-', sesi8: '-' });
-            matrix.push({ daerah: daerah, nama: `${kel} B`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-', sesi7: '-', sesi8: '-' });
-        }
-    }
-
     const q = query(collection(db, "absensi_asrama"));
     
     // onSnapshot membuat data langsung otomatis ber-sinkronisasi (auto-refresh) 
     const unsubscribe = onSnapshot(q, (snap) => {
-        // Bersihkan dulu
-        matrix.forEach(row => {
-            row.sesi1 = '-'; row.sesi2 = '-'; row.sesi3 = '-'; row.sesi4 = '-';
-            row.sesi5 = '-'; row.sesi6 = '-'; row.sesi7 = '-'; row.sesi8 = '-';
-        });
+        // Buat kerangka matriks 62 kelompok yang BARU setiap kali ada update
+        const matrix = [];
+        for (const daerah in WILAYAH) {
+            const kelompoks = WILAYAH[daerah];
+            for (const kel of kelompoks) {
+                matrix.push({ daerah: daerah, nama: `${kel} A`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-', sesi7: '-', sesi8: '-' });
+                matrix.push({ daerah: daerah, nama: `${kel} B`, sesi1: '-', sesi2: '-', sesi3: '-', sesi4: '-', sesi5: '-', sesi6: '-', sesi7: '-', sesi8: '-' });
+            }
+        }
 
         snap.forEach(docSnap => {
             const d = docSnap.data();
@@ -292,7 +286,7 @@ window.subscribeRekapData = (callback) => {
             }
         });
         
-        callback([...matrix]); // Kirim update terbaru ke UI Alpine
+        callback(matrix); // Kirim update terbaru ke UI Alpine
     }, (err) => {
         console.error("Gagal auto-refresh rekap:", err);
     });
